@@ -52,40 +52,40 @@ ContentFlow is built around a simple content workflow:
 ```mermaid
 flowchart TB
     subgraph Client
-        UI[Dashboard / Templates\nfrontend/static/js]
+        UI[Dashboard / Templates<br/>frontend/static/js]
     end
 
     subgraph Edge["config/ — cross-cutting"]
-        MW[RequestIDMiddleware\nmiddleware.py]
-        LOG[JSON logging\nlogging_utils.py]
-        SENTRY[Sentry integration\nsentry.py]
-        URLS[URL routing\nurls.py]
+        MW[RequestIDMiddleware<br/>middleware.py]
+        LOG[JSON logging<br/>logging_utils.py]
+        SENTRY[Sentry integration<br/>sentry.py]
+        URLS[URL routing<br/>urls.py]
     end
 
     subgraph Auth["apps/users/"]
-        AUTHAPI[Auth / Profile API\nviews.py, serializers.py]
-        CJWT[CookieJWTAuthentication\nauthentication.py]
+        AUTHAPI[Auth / Profile API<br/>views.py, serializers.py]
+        CJWT[CookieJWTAuthentication<br/>authentication.py]
         USERMODEL[(User / Profile)]
     end
 
     subgraph Jobs["apps/jobs/"]
-        JOBAPI[Job / Output API\nviews.py]
-        SCRAPER[scraper.py\nSSRF-safe fetch + extract]
-        REPUR[repurposer.py\nprompt build + provider calls]
-        QSCORE[quality_score.py\nheuristic scoring]
+        JOBAPI[Job / Output API<br/>views.py]
+        SCRAPER[scraper.py<br/>SSRF-safe fetch + extract]
+        REPUR[repurposer.py<br/>prompt build + provider calls]
+        QSCORE[quality_score.py<br/>heuristic scoring]
         JOBMODEL[(Job / Output)]
     end
 
     subgraph Scheduling["apps/scheduling/"]
-        SCHEDAPI[ScheduledEmail API\nviews.py]
-        APSCHED[scheduler.py\nAPScheduler poller]
-        TASKS[tasks.py\nsend + retry]
-        NOTIFY[notifications.py\nowner confirmations]
+        SCHEDAPI[ScheduledEmail API<br/>views.py]
+        APSCHED[scheduler.py<br/>APScheduler poller]
+        TASKS[tasks.py<br/>send + retry]
+        NOTIFY[notifications.py<br/>owner confirmations]
         SCHEDMODEL[(ScheduledEmail)]
     end
 
     subgraph Stats["apps/stats/"]
-        STATAPI[Stats API\nviews.py]
+        STATAPI[Stats API<br/>views.py]
     end
 
     subgraph External["External services"]
