@@ -51,7 +51,9 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 # Mailtrap (sandbox/live) uses STARTTLS on 2525/587.
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="ContentFlow AI <noreply@contentflow.ai>")
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL", default="ContentFlow AI <noreply@contentflow.ai>"
+)
 
 
 from config.sentry import configure_sentry
@@ -89,6 +91,7 @@ MIDDLEWARE = [
     "config.middleware.RequestIDMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -172,7 +175,7 @@ STATICFILES_DIRS = [
 # not scale across multiple app servers.
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # # 2. Make sure these default finders are explicitly defined
 # STATICFILES_FINDERS = [
 #     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -309,5 +312,11 @@ LOGGING = {
     "root": {
         "handlers": ["console"],
         "level": "INFO",
+    },
+}
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
     },
 }
