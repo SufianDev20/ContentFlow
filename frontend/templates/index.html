@@ -1,58 +1,301 @@
-{% extends "base.html" %}
-{% load static %}
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ContentFlow AI: one post, four formats</title>
+    <meta name="description" content="Paste an article or a URL. ContentFlow AI writes the tweet thread, LinkedIn post, newsletter email and TL;DR, then scores each one.">
+    <meta name="theme-color" content="#18191b">
+    <meta property="og:title" content="ContentFlow AI: one post, four formats">
+    <meta property="og:description" content="Paste an article or a URL. Get a tweet thread, LinkedIn post, newsletter email and TL;DR, each with latency, token and quality metrics.">
+    <meta property="og:type" content="website">
+    <script>document.documentElement.classList.add('js');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Stack+Sans+Text:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'css/landing-scroll.css' %}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<div class="topbar" aria-hidden="true"></div>
+<div class="progress" aria-hidden="true"><i data-progress></i></div>
 
-{% block title %}ContentFlow AI{% endblock %}
-
-{% block body_class %}page page-landing{% endblock %}
-
-{% block content %}
-{% include "nav.html" %}
-<main class="container hero-parallax"
-    style="flex:1; display:flex; flex-direction:column; justify-content:flex-start; padding-top:120px; padding-bottom:140px;">
-    <div class="hero-parallax-bg" aria-hidden="true">
-        <div class="hero-orb hero-orb-1"></div>
-        <div class="hero-orb hero-orb-2"></div>
-    </div>
-
-    <div class="hero-parallax-content">
-        <section class="text-center reveal is-visible" style="max-width:960px; margin:0 auto;">
-            <span class="hero-badge">AI Content Platform</span>
-            <h1 class="text-display">Turn one blog post into five platforms of content</h1>
-            <p class="cf-text-body mt-4" style="font-size: 18px; color: var(--color-on-surface-variant);">The developer-first content transformation tool. Repurpose your writing for social media, email, and summaries with technical precision.</p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap mt-6">
-                <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 12px 28px; font-size: 16px;">Get started free</a>
-                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="padding: 12px 28px; font-size: 16px;">View API docs</a>
-            </div>
-        </section>
-
-        <section class="stats-grid features-grid mt-8">
-            <div class="stat-card text-center reveal reveal-delay-1">
-                <span class="material-symbols-outlined feature-icon">schema</span>
-                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Multi-Platform Outputs</p>
-                <p class="text-sm cf-text-muted mt-2">Tweet threads, LinkedIn, Email, and TL;DRs from one source.</p>
-            </div>
-            <div class="stat-card text-center reveal reveal-delay-2">
-                <span class="material-symbols-outlined feature-icon">terminal</span>
-                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Developer First</p>
-                <p class="text-sm cf-text-muted mt-2">Technical metrics, API access, and LLM model selection.</p>
-            </div>
-            <div class="stat-card text-center reveal reveal-delay-3">
-                <span class="material-symbols-outlined feature-icon">speed</span>
-                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Speed &amp; Precision</p>
-                <p class="text-sm cf-text-muted mt-2">High tokens/sec and quality scoring for every generation.</p>
-            </div>
-        </section>
-    </div>
-
-    <footer class="footer">
-        <div class="container footer-content">
-            <p class="text-sm cf-text-muted">© 2024 ContentFlow AI</p>
-            <div class="footer-links">
-                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
-                <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
-                <a href="#" aria-label="Get support">Support</a>
+<header class="hero">
+    <div class="hero-l">
+        <a class="brand" href="{% url 'index' %}" aria-label="ContentFlow AI home">
+            <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff4a1f"/><path d="M6 9h16M6 14h11M6 19h6" stroke="#18191b" stroke-width="3"/></svg>
+            <span>ContentFlow AI</span>
+        </a>
+        <div class="hero-copy">
+            <h1 class="mask" aria-label="One post, four formats.">
+                <span class="line"><span class="line-in">One post,</span></span>
+                <span class="line"><span class="line-in">four formats.</span></span>
+            </h1>
+            <div class="hero-after">
+                <p class="lead">Paste an article or a URL. ContentFlow writes the tweet thread, LinkedIn post, newsletter email and TL;DR, and scores each one.</p>
+                <a class="btn" href="{% url 'register' %}">Start free</a>
             </div>
         </div>
-    </footer>
+    </div>
+
+    <div class="hero-r" id="main">
+        <a class="toplink" href="{% url 'login' %}">Log in</a>
+        <div class="ui composer" data-ui data-composer>
+            <div class="ui-head">
+                <span class="ui-title">Why we cut deploy time from 40 minutes to 6</span>
+                <span class="ui-chip">Sample article, 1,240 words</span>
+            </div>
+            <div class="ui-tabs" role="tablist" aria-label="Output format">
+                <button type="button" role="tab" aria-selected="true" data-format="tweet">Tweet thread</button>
+                <button type="button" role="tab" aria-selected="false" data-format="linkedin">LinkedIn</button>
+                <button type="button" role="tab" aria-selected="false" data-format="email">Email</button>
+                <button type="button" role="tab" aria-selected="false" data-format="tldr">TL;DR</button>
+            </div>
+            <div class="ui-out" role="tabpanel" aria-live="polite" data-out>
+                <p class="o">1/4 We cut our deploy from 40 minutes to 6. No new tools, just three boring changes. A thread:</p>
+                <p class="o">2/4 First, we stopped rebuilding the base image on every push. Cache it, pin it, rebuild weekly.</p>
+                <p class="o">3/4 Second, tests run in parallel by service instead of one long queue. The slowest suite now sets the clock.</p>
+                <p class="o">4/4 Third, we deploy the diff, not the whole system. Less to ship, less to break. Full write-up in the post.</p>
+            </div>
+            <dl class="ui-metrics" data-metrics>
+                <div><dt>Latency</dt><dd>3.2 s</dd></div>
+                <div><dt>Tokens</dt><dd>412</dd></div>
+                <div><dt>Tokens/sec</dt><dd>129</dd></div>
+                <div><dt>Quality</dt><dd class="hot">88</dd></div>
+            </dl>
+            <p class="ui-note">Example run. Your own jobs show their real numbers.</p>
+        </div>
+    </div>
+</header>
+
+<div class="band" aria-hidden="true"><div class="band-track" data-band>
+    <span>Tweet thread</span><em></em><span>LinkedIn post</span><em></em><span>Newsletter email</span><em></em><span>TL;DR</span><em></em>
+    <span>Tweet thread</span><em></em><span>LinkedIn post</span><em></em><span>Newsletter email</span><em></em><span>TL;DR</span><em></em>
+</div></div>
+
+<main>
+    <!-- Pinned story -->
+    <section class="story" aria-labelledby="h-story" data-story>
+        <div class="story-pin">
+            <div class="story-l">
+                <h2 id="h-story">What happens to your post</h2>
+                <ol class="story-steps">
+                    <li class="on"><b>It is fetched and cleaned.</b><span>Give a URL and the article text is pulled out of the page. Private addresses and cloud metadata endpoints are refused.</span></li>
+                    <li><b>Each format gets its own brief.</b><span>A thread, a LinkedIn post, an email and a TL;DR each have their own prompt. OpenRouter answers first and Gemini covers for it.</span></li>
+                    <li><b>Every output is measured.</b><span>Latency, tokens per second and a 0 to 100 quality score are saved with the output.</span></li>
+                </ol>
+            </div>
+            <div class="ui console" data-ui data-stage="1">
+                <div class="ui-head"><span class="ui-title">Job in progress</span><span class="ui-chip" data-stage-label>Fetching</span></div>
+                <div class="stg stg1">
+                    <p class="url">https://example.com/blog/cut-deploy-time</p>
+                    <ul class="chk st">
+                        <li class="on"><i></i>https://example.com/blog<b>Allowed</b></li>
+                        <li><i></i>http://localhost:8000<b>Blocked</b></li>
+                        <li><i></i>http://192.168.1.1<b>Blocked</b></li>
+                        <li><i></i>http://169.254.169.254<b>Blocked</b></li>
+                    </ul>
+                    <p class="got">Extracted 1,240 words. Navigation, ads and footers removed.</p>
+                </div>
+                <div class="stg stg2">
+                    <ul class="rows">
+                        <li><span>Tweet thread</span><b>OpenRouter</b></li>
+                        <li><span>LinkedIn post</span><b>OpenRouter</b></li>
+                        <li><span>Email</span><b class="hot">Retried on Gemini</b></li>
+                        <li><span>TL;DR</span><b>OpenRouter</b></li>
+                    </ul>
+                    <p class="got">Example run. A failed provider call is retried on the fallback.</p>
+                </div>
+                <div class="stg stg3">
+                    <ul class="rows sc">
+                        <li><span>Tweet thread</span><em>3.2 s</em><em>129 t/s</em><b>88</b></li>
+                        <li><span>LinkedIn post</span><em>4.1 s</em><em>125 t/s</em><b>84</b></li>
+                        <li><span>Email</span><em>4.8 s</em><em>125 t/s</em><b>81</b></li>
+                        <li><span>TL;DR</span><em>1.6 s</em><em>105 t/s</em><b class="hot">91</b></li>
+                    </ul>
+                    <p class="got">Example scores. Each one is saved with its output.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="steps" aria-labelledby="h-how">
+        <div class="step s1" data-reveal>
+            <h2 id="h-how">How it works</h2>
+            <div class="job" data-ui>
+                <p class="job-t">Why we cut deploy time</p>
+                <p class="job-s">Pasted text, 1,240 words</p>
+                <span class="pill">Draft</span>
+                <p class="excerpt">We cut our deploy from 40 minutes to 6. It took three boring changes. First, we stopped rebuilding the base image on every push&hellip;</p>
+            </div>
+            <p class="clause">First you paste it.</p>
+        </div>
+        <div class="step s2" data-reveal style="--i:1">
+            <div class="job" data-ui>
+                <p class="job-t">Why we cut deploy time</p>
+                <p class="job-s">Pasted text, 1,240 words</p>
+                <span class="pill">Ready</span>
+                <ul class="chk">
+                    <li class="on"><i></i>Tweet thread</li><li class="on"><i></i>LinkedIn</li><li class="on"><i></i>Email</li><li class="on"><i></i>TL;DR</li>
+                </ul>
+            </div>
+            <p class="clause">Then you pick the formats.</p>
+        </div>
+        <div class="step s3" data-reveal style="--i:2">
+            <div class="job" data-ui>
+                <p class="job-t">Why we cut deploy time</p>
+                <p class="job-s">Generating while you wait</p>
+                <span class="pill live">Processing</span>
+                <ul class="chk st">
+                    <li class="on"><i></i>Tweet thread<b>Done</b></li><li class="on"><i></i>LinkedIn<b>Done</b></li><li class="on"><i></i>Email<b>Writing</b></li><li><i></i>TL;DR<b>Next</b></li>
+                </ul>
+                <div class="bar" aria-hidden="true"><span></span></div>
+            </div>
+            <p class="clause">Then the model writes.</p>
+        </div>
+        <div class="step s4" data-reveal style="--i:3">
+            <div class="job" data-ui>
+                <p class="job-t">Why we cut deploy time</p>
+                <p class="job-s">Example scores out of 100</p>
+                <span class="pill done">Complete</span>
+                <ul class="chk st sc">
+                    <li><span>Tweet thread</span><b>88</b></li><li><span>LinkedIn</span><b>84</b></li><li><span>Email</span><b>81</b></li><li><span>TL;DR</span><b class="hot">91</b></li>
+                </ul>
+            </div>
+            <p class="clause">Then you read the scores.</p>
+        </div>
+    </section>
+
+    <!-- Live splitter -->
+    <section class="split" aria-labelledby="h-split">
+        <div class="split-l">
+            <label class="sr" for="draft">Paste your draft</label>
+            <textarea id="draft" class="draft" spellcheck="false" rows="9">We cut our deploy from 40 minutes to 6. It took three boring changes. First, we stopped rebuilding the base image on every push, so it is now cached and rebuilt weekly. Second, tests run in parallel by service instead of one long queue, which means the slowest suite sets the clock. Third, we deploy the diff and not the whole system. Less to ship means less to break. None of it needed a new tool.</textarea>
+        </div>
+        <div class="split-r">
+            <div class="ui thread" data-ui data-reveal>
+                <div class="ui-head"><span class="ui-title">Thread preview</span><span class="ui-chip" data-count>0 tweets</span></div>
+                <ol class="cards" data-cards></ol>
+                <p class="ui-note">This preview cuts your text into tweets in your browser. Full generation runs in your account.</p>
+            </div>
+        </div>
+        <h2 id="h-split" class="split-h"><span>Paste it,</span><span>post it.</span></h2>
+    </section>
+
+    <!-- Panel with margin notes -->
+    <section class="plate" aria-labelledby="h-plate">
+        <h2 id="h-plate" data-reveal>Every job, one panel</h2>
+        <div class="plate-grid">
+            <div class="ui panel" data-ui data-panel data-reveal>
+                <div class="pt" data-part="history">
+                    <span class="ui-title">Why we cut deploy time</span><span class="pill done">Complete</span>
+                </div>
+                <div class="pt pm" data-part="model">
+                    <label for="model">Model</label>
+                    <select id="model" data-model>
+                        <option value="auto">Free model, automatic</option>
+                        <option value="gemini">Gemini</option>
+                    </select>
+                </div>
+                <div class="pt pp" data-part="fallback"><span>Provider</span><strong data-provider>OpenRouter first, Gemini as fallback</strong></div>
+                <div class="pt ptabs" data-part="formats">
+                    <div class="ui-tabs" role="tablist" aria-label="Panel format">
+                        <button type="button" role="tab" aria-selected="true" data-format="tweet">Tweet thread</button>
+                        <button type="button" role="tab" aria-selected="false" data-format="linkedin">LinkedIn</button>
+                        <button type="button" role="tab" aria-selected="false" data-format="email">Email</button>
+                        <button type="button" role="tab" aria-selected="false" data-format="tldr">TL;DR</button>
+                    </div>
+                </div>
+                <div class="pt pout" data-part="output" data-out>
+                    <p class="o">1/4 We cut our deploy from 40 minutes to 6. No new tools, just three boring changes. A thread:</p>
+                    <p class="o">2/4 First, we stopped rebuilding the base image on every push. Cache it, pin it, rebuild weekly.</p>
+                </div>
+                <dl class="pt ui-metrics" data-part="metrics" data-metrics>
+                    <div><dt>Latency</dt><dd>3.2 s</dd></div>
+                    <div><dt>Tokens</dt><dd>412</dd></div>
+                    <div><dt>Tokens/sec</dt><dd>129</dd></div>
+                </dl>
+                <div class="pt pq" data-part="quality">
+                    <span>Quality score</span><strong class="hot" data-q>88</strong>
+                    <div class="meter" aria-hidden="true"><i data-qbar style="width:88%"></i></div>
+                </div>
+            </div>
+            <ul class="notes">
+                <li class="n n-r" tabindex="0" data-for="history" style="--top:6px"><b>History</b><span>Every job is saved to your account and nobody else can open it.</span></li>
+                <li class="n n-r" tabindex="0" data-for="model" style="--top:96px"><b>Model choice</b><span>Pick a free model or Gemini for each job.</span></li>
+                <li class="n n-r" tabindex="0" data-for="fallback" style="--top:186px"><b>Automatic fallback</b><span>If OpenRouter fails, the request goes to Gemini.</span></li>
+                <li class="n n-l" tabindex="0" data-for="formats" style="--top:196px"><b>Four formats</b><span>Tweet thread, LinkedIn post, email and TL;DR from one source.</span></li>
+                <li class="n n-l" tabindex="0" data-for="metrics" style="--top:490px"><b>Latency and tokens</b><span>See how long each output took and how fast it came.</span></li>
+                <li class="n n-l" tabindex="0" data-for="quality" style="--top:592px"><b>Quality score</b><span>A 0 to 100 check against each format's rules.</span></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Developer -->
+    <section class="dev" aria-labelledby="h-dev">
+        <div class="dev-l" data-reveal>
+            <h2 id="h-dev">Or from your terminal</h2>
+            <p class="lead">Everything the app does goes through a documented API. Create a job with one request, then poll its status.</p>
+            <a class="btn" href="/api/docs/" target="_blank" rel="noopener noreferrer">Read the API docs</a>
+        </div>
+        <div class="code" data-reveal style="--i:1">
+            <button type="button" class="copy" data-copy>Copy</button>
+<pre><code id="curl">curl -X POST https://your-host/api/v1/jobs/ \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_url": "https://example.com/blog/cut-deploy-time",
+    "formats": ["tweet_thread", "linkedin", "email", "tldr"],
+    "model": "openrouter/free"
+  }'</code></pre>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" aria-labelledby="h-faq">
+        <h2 id="h-faq" data-reveal>Questions</h2>
+        <div class="acc" data-reveal>
+            <details name="faq" open><summary>What can I paste?</summary><p>Raw text, or the URL of a public article. For a URL, ContentFlow fetches the page and pulls out the article text before writing anything.</p></details>
+            <details name="faq"><summary>Which models does it use?</summary><p>Requests go to OpenRouter first. If that provider fails, the same request is sent to Gemini. You can choose the model for each job.</p></details>
+            <details name="faq"><summary>How long does a job take?</summary><p>Outputs are generated while you wait, so a long article can take a while. Every output shows its own latency and tokens per second.</p></details>
+            <details name="faq"><summary>What does the quality score mean?</summary><p>It is a 0 to 100 check against the rules of each format, such as numbered tweets under 280 characters or a LinkedIn post of the right length. It is not a judgment of taste.</p></details>
+            <details name="faq"><summary>Is my content private?</summary><p>Your jobs and outputs belong to your account and are only visible when you are signed in. The text is sent to the model provider to be rewritten.</p></details>
+            <details name="faq"><summary>Is it safe to submit a URL?</summary><p>The fetcher only follows http and https links, and refuses localhost, private network addresses and cloud metadata endpoints.</p></details>
+            <details name="faq"><summary>Is there an API?</summary><p>Yes. The same endpoints the app uses are documented with Swagger and Redoc, and the OpenAPI schema is public.</p></details>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" aria-labelledby="h-cta">
+        <div class="cta-l" data-reveal>
+            <h2 id="h-cta" class="mask-static">Start with<br>one post.</h2>
+            <p class="lead">Create an account, paste an article or a URL, and your first four formats are written while you wait.</p>
+        </div>
+        <form class="ui dialog" data-ui data-reveal style="--i:2" data-cta action="{% url 'register' %}" method="get">
+            <h3>Create your account</h3>
+            <label for="cta-email">Email</label>
+            <input id="cta-email" name="email" type="email" value="you@example.com" autocomplete="email" required>
+            <p class="ui-note">Next: your name and a password.</p>
+            <button class="btn" type="submit">Continue</button>
+            <p class="ui-note">Already have one? <a href="{% url 'login' %}">Log in</a></p>
+        </form>
+    </section>
 </main>
-{% endblock %}
+
+<footer class="foot" aria-label="Site footer">
+    <div class="tile t-state"><p>Paste once. Publish everywhere you write.</p><small>&copy; {% now "Y" %} ContentFlow AI</small></div>
+    <nav class="tile t-nav" aria-label="Footer"><a href="/api/docs/" target="_blank" rel="noopener noreferrer">API docs</a><a href="/api/schema/" target="_blank" rel="noopener noreferrer">OpenAPI schema</a><a href="{% url 'login' %}">Log in</a><a href="{% url 'register' %}">Register</a></nav>
+    <div class="tile t-stack"><p>Django, OpenRouter and Gemini.</p></div>
+    <a class="tile t-doc" href="/api/redoc/" target="_blank" rel="noopener noreferrer">API reference</a>
+    <div class="tile t-word" aria-hidden="true">ContentFlow</div>
+    <a class="tile t-go" href="{% url 'register' %}">Start free
+        <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><path d="M10 46L46 10M20 10h26v26" fill="none" stroke="currentColor" stroke-width="4"/></svg>
+    </a>
+</footer>
+
+<script src="{% static 'js/landing.js' %}"></script>
+<script src="{% static 'js/landing-scroll.js' %}"></script>
+</body>
+</html>

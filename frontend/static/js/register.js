@@ -64,3 +64,10 @@ document.getElementById('register-form').addEventListener('submit', async (event
         setLoading(false);
     }
 });
+
+// Prefill the email carried over from the landing page form.
+(function () {
+    const field = document.getElementById('email');
+    const carried = new URLSearchParams(window.location.search).get('email');
+    if (field && carried) field.value = carried;
+})();

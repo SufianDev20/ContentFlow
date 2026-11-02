@@ -1,0 +1,75 @@
+/* ContentFlow AI landing page: scroll-driven sections (progress, band, pinned story, developer). */
+
+/* ---------- Scroll progress ---------- */
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 40; pointer-events: none; }
+.progress i { display: block; height: 100%; background: var(--accent); transform: scaleX(var(--p, 0)); transform-origin: left; }
+
+/* ---------- Format band ---------- */
+.band { overflow: hidden; margin-top: var(--gap-s); background: var(--bg); }
+.band-track { display: flex; align-items: center; gap: 4vw; width: max-content; padding-left: 4vw; font: 300 var(--huge)/1.1 var(--f-head); letter-spacing: -0.03em; white-space: nowrap; transform: translateX(calc(var(--bx, 0) * -1px)); will-change: transform; }
+.band-track em { width: .32em; height: .32em; background: var(--accent); flex: none; }
+.band-track span:nth-of-type(even) { color: var(--muted); }
+
+/* ---------- Pinned story ---------- */
+.story { height: 230svh; margin-top: var(--gap-s); position: relative; }
+.story-pin { position: sticky; top: 0; height: 100svh; min-height: 620px; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; align-items: center; padding: 0 var(--m); }
+.story-l { grid-column: 1 / 7; display: grid; gap: 40px; }
+.story-l h2 { font-size: clamp(2rem, 1.2rem + 2.6vw, 3.75rem); }
+.story-steps { display: grid; gap: 24px; }
+.story-steps li { display: grid; gap: 6px; color: var(--muted); cursor: pointer; transition: color .3s, transform .4s var(--ease); }
+.story-steps li b { font-size: var(--lead); font-weight: 500; line-height: 1.2; }
+.story-steps li span { font-size: 1.0625rem; max-width: 42ch; }
+.story-steps li.on { color: var(--ink); }
+.story-steps li.on b { color: var(--accent); }
+.console { grid-column: 8 / 13; width: 100%; max-width: 560px; justify-self: end; height: 400px; position: relative; overflow: hidden; }
+.stg { position: absolute; inset: 62px 0 0; padding: 16px; opacity: 0; transform: translateY(24px); transition: opacity .5s var(--ease), transform .6s var(--ease); pointer-events: none; display: grid; align-content: start; gap: 12px; }
+.console[data-stage="1"] .stg1, .console[data-stage="2"] .stg2, .console[data-stage="3"] .stg3 { opacity: 1; transform: none; pointer-events: auto; }
+.url { font-weight: 500; padding: 12px; background: #fff; border: 1px solid #b8bbbf; border-radius: var(--r); overflow-wrap: anywhere; } /* taste-skill-ignore */
+.got { font-size: var(--small); color: var(--ui-muted); padding-top: 8px; }
+.rows { display: grid; gap: 8px; }
+.rows li { display: flex; align-items: center; gap: 16px; padding: 14px; background: #fff; border-radius: var(--r); }
+.rows li span { font-weight: 500; flex: 1; }
+.rows li b { font-weight: 500; font-size: var(--small); color: var(--ui-muted); }
+.rows li b.hot { font-weight: 700; }
+.rows.sc em { font-style: normal; color: var(--ui-muted); font-size: var(--small); font-variant-numeric: tabular-nums; }
+.rows.sc li b { font-size: 1.375rem; color: var(--ui-ink); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.rows.sc li b.hot { color: #c4300d; }
+.console[data-stage="1"] .stg1 .chk li:nth-child(n+2) i { border-color: #b3280a; }
+.console[data-stage="3"] .stg3 .rows li { animation: up .5s var(--ease) both; }
+.console[data-stage="3"] .stg3 .rows li:nth-child(2) { animation-delay: .08s; }
+.console[data-stage="3"] .stg3 .rows li:nth-child(3) { animation-delay: .16s; }
+.console[data-stage="3"] .stg3 .rows li:nth-child(4) { animation-delay: .24s; }
+
+/* ---------- Developer ---------- */
+.dev { margin: var(--gap-s) var(--m) 0; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; align-items: center; }
+.dev-l { grid-column: 1 / 6; display: grid; gap: 28px; justify-items: start; }
+.dev-l h2 { font-size: clamp(2.25rem, 1.2rem + 3vw, 4.25rem); }
+.dev-l .lead { font-size: 1.1875rem; color: var(--muted); max-width: 36ch; }
+.code { grid-column: 7 / 13; position: relative; background: var(--deep); border-radius: var(--r); padding: 28px 24px; overflow-x: auto; }
+.code pre { margin: 0; }
+.code code { font: 400 0.9375rem/1.7 ui-monospace, 'Cascadia Code', Consolas, monospace; color: var(--ink); white-space: pre; }
+.copy { position: absolute; top: 12px; right: 12px; min-height: 40px; padding: 0 14px; font: 500 0.875rem var(--f-text); background: var(--raised); color: var(--ink); border: 0; border-radius: var(--r); cursor: pointer; transition: background-color .15s, color .15s; }
+.copy:hover { background: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 860px) {
+    .story { height: 250svh; }
+    .story-pin { grid-template-columns: 1fr; align-content: center; gap: 20px; padding-top: 16px; padding-bottom: 16px; }
+    .story-l, .console { grid-column: 1; }
+    .story-l { gap: 14px; }
+    .story-l h2 { font-size: 1.625rem; }
+    .story-steps { gap: 10px; }
+    .story-steps li span { display: none; }
+    .story-steps li.on span { display: block; font-size: 1rem; }
+    .console { height: 400px; justify-self: stretch; max-width: none; }
+    .dev { grid-template-columns: 1fr; row-gap: 32px; }
+    .dev-l, .code { grid-column: 1; }
+    .dev-l h2 { font-size: 9vw; }
+    .code code { font-size: 0.8125rem; white-space: pre-wrap; word-break: break-word; }
+    .rows li { flex-wrap: wrap; gap: 6px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .band-track { transform: none; }
+    .story-steps li.on { transform: none; }
+}
+
+.excerpt { margin-top: 14px; font-size: 0.9375rem; }
