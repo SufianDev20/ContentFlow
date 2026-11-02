@@ -1,0 +1,9 @@
+envir/
+.claude/
+.vscode/
+PRD/
+docs/
+backend/.env
+backend/media/
+backend/__pycache__/
+backend/.pytest_cache/

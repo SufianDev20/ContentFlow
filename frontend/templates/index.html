@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ContentFlow AI{% endblock %}
+
+{% block body_class %}page page-landing{% endblock %}
+
+{% block content %}
+{% include "nav.html" %}
+<main class="container hero-parallax"
+    style="flex:1; display:flex; flex-direction:column; justify-content:center; padding-top:160px; padding-bottom:140px;">
+    <div class="hero-parallax-bg" aria-hidden="true">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+    </div>
+
+    <div class="hero-parallax-content">
+        <section class="text-center reveal is-visible" style="max-width:960px; margin:0 auto;">
+            <span class="hero-badge">AI Content Platform</span>
+            <h1 class="text-display">Turn one blog post into five platforms of content</h1>
+            <p class="cf-text-body mt-4" style="font-size: 18px; color: var(--color-on-surface-variant);">The developer-first content transformation tool. Repurpose your writing for social media, email, and summaries with technical precision.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap mt-6">
+                <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 12px 28px; font-size: 16px;">Get started free</a>
+                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="padding: 12px 28px; font-size: 16px;">View API docs</a>
+            </div>
+        </section>
+
+        <section class="stats-grid features-grid mt-8">
+            <div class="stat-card text-center reveal reveal-delay-1">
+                <span class="material-symbols-outlined feature-icon">schema</span>
+                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Multi-Platform Outputs</p>
+                <p class="text-sm cf-text-muted mt-2">Tweet threads, LinkedIn, Email, and TL;DRs from one source.</p>
+            </div>
+            <div class="stat-card text-center reveal reveal-delay-2">
+                <span class="material-symbols-outlined feature-icon">terminal</span>
+                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Developer First</p>
+                <p class="text-sm cf-text-muted mt-2">Technical metrics, API access, and LLM model selection.</p>
+            </div>
+            <div class="stat-card text-center reveal reveal-delay-3">
+                <span class="material-symbols-outlined feature-icon">speed</span>
+                <p class="text-headline" style="font-size:18px; margin-top: var(--space-3);">Speed &amp; Precision</p>
+                <p class="text-sm cf-text-muted mt-2">High tokens/sec and quality scoring for every generation.</p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <p class="text-sm cf-text-muted">© 2024 ContentFlow AI</p>
+            <div class="footer-links">
+                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
+                <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
+                <a href="#" aria-label="Get support">Support</a>
+            </div>
+        </div>
+    </footer>
+</main>
+{% endblock %}

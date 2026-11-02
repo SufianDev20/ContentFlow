@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CONTENTFLOW AI - Login{% endblock %}
+{% block body_class %}page-centered{% endblock %}
+
+{% block content %}
+<div id="success-banner" class="banner-success hidden" style="position:absolute; top:0; left:0;" role="alert" aria-live="polite">
+    Account created. Please log in.
+</div>
+
+<a href="/" class="topnav-wordmark mb-6 d-block text-center" style="font-size:22px; text-decoration:none;">ContentFlow AI</a>
+<main class="card card-elevated" style="width:100%; max-width:420px;">
+    <div class="text-center mb-6">
+        <h1 class="text-headline" style="color: var(--color-on-surface);">Sign in</h1>
+        <p class="text-sm mt-2" style="color: var(--color-on-surface-variant);">Access your operator dashboard.</p>
+    </div>
+
+    <div id="form-error" class="form-error-banner mb-4" role="alert" aria-live="assertive"></div>
+
+    <form id="login-form" class="stack gap-4">
+        {% csrf_token %}
+        <div class="field">
+            <label for="email">Email</label>
+            <input class="input" id="email" name="email" type="email" required autocomplete="email" aria-describedby="email-help">
+            <small id="email-help" class="cf-text-muted text-sm">Enter your registered email address</small>
+        </div>
+        <div class="field">
+            <label for="password">Password</label>
+            <input class="input" id="password" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary btn-block mt-2" id="submit-btn" type="submit" aria-label="Sign in to your account">Login</button>
+    </form>
+
+    <p class="text-sm text-center mt-4" style="color: var(--color-on-surface-variant);">
+        Don't have an account? <a class="text-primary" href="{% url 'register' %}" style="color: var(--color-primary);">Register</a>
+    </p>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const DASHBOARD_URL = "{% url 'dashboard' %}";
+</script>
+<script src="{% static 'js/common.js' %}"></script>
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

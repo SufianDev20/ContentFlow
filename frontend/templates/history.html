@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CONTENTFLOW AI - History{% endblock %}
+{% block body_class %}page main-with-sidebar{% endblock %}
+
+{% block extra_head %}
+<script>
+    window.authenticated = true;
+</script>
+{% endblock %}
+
+{% block content %}
+{% include "nav.html" with active_page="history" %}
+
+<main id="main-content" class="container mt-6" style="flex:1; padding-top: 80px;">
+    <h1 class="text-headline mb-4">History</h1>
+
+    <div class="search-bar">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Search jobs..." id="search-input" aria-label="Search job history">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-secondary" style="padding: 4px 8px !important; font-size: 12px !important;" aria-label="Filter job history">
+            <span class="material-symbols-outlined" style="font-size: 16px !important;">filter_list</span>
+            Filter
+        </button>
+        <button class="btn btn-secondary" style="padding: 4px 8px !important; font-size: 12px !important;" aria-label="Export job history">
+            <span class="material-symbols-outlined" style="font-size: 16px !important;">download</span>
+            Export
+        </button>
+    </div>
+
+    <div class="card enter" style="padding:0; overflow-x:auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Model</th>
+                    <th scope="col">Word Count</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="history-tbody"></tbody>
+        </table>
+    </div>
+
+    <div id="empty-state" class="empty-state hidden" role="status">No jobs yet. Generate some content to see your history.</div>
+    <div id="pagination-info" class="pagination-info"></div>
+    <div id="pagination-controls" class="pagination-controls mt-4" aria-label="Job history pagination"></div>
+</main>
+
+<footer class="page-footer">
+    <div class="container page-footer-content">
+        <p class="text-sm text-muted">© 2024 ContentFlow AI</p>
+        <div class="page-footer-links">
+            <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
+            <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
+            <a href="#" aria-label="Get support">Support</a>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // job_detail reads the job id from ?id=<uuid>, same as the original job.html
+    const JOB_URL_BASE = "{% url 'job' %}";
+</script>
+<script src="{% static 'js/common.js' %}"></script>
+<script src="{% static 'js/history.js' %}"></script>
+{% endblock %}

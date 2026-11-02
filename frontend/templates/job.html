@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CONTENTFLOW AI - Job Detail{% endblock %}
+{% block body_class %}page main-with-sidebar{% endblock %}
+
+{% block extra_head %}
+<script>
+    window.authenticated = true;
+</script>
+{% endblock %}
+
+{% block content %}
+{% include "nav.html" with active_page="history" %}
+
+<main id="main-content" class="container mt-6" style="flex:1; max-width:800px; padding-top: 80px;">
+    <div id="job-error" class="form-error-banner mb-4" role="alert" aria-live="assertive"></div>
+
+    <div class="card mb-6" style="background: var(--color-surface);">
+        <p class="text-mono" id="job-model">—</p>
+        <p class="text-sm text-muted mt-2" id="job-date">—</p>
+    </div>
+
+    <div id="outputs-container" aria-live="polite"></div>
+</main>
+
+<!-- Schedule Email Modal -->
+<div class="settings-modal-overlay hidden" id="schedule-modal-overlay" role="presentation">
+    <div class="settings-modal card card-elevated" role="dialog" aria-modal="true" aria-labelledby="schedule-modal-title">
+        <div class="settings-modal-header">
+            <h2 id="schedule-modal-title" class="text-headline">Schedule email</h2>
+            <button type="button" class="settings-modal-close" id="schedule-modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="schedule-error" class="form-error-banner mb-4" role="alert" aria-live="assertive"></div>
+
+        <div class="field mb-4">
+            <label for="schedule-recipients">Recipients (comma-separated)</label>
+            <input class="input" id="schedule-recipients" type="text" placeholder="reader@example.com, other@example.com">
+        </div>
+
+        <div class="field mb-4">
+            <label for="schedule-subject">Subject</label>
+            <input class="input" id="schedule-subject" type="text" maxlength="255">
+        </div>
+
+        <div class="field mb-4">
+            <label for="schedule-content">Content</label>
+            <textarea class="input" id="schedule-content" rows="8"></textarea>
+        </div>
+
+        <div class="field mb-6">
+            <label for="schedule-time">Send at</label>
+            <input class="input" id="schedule-time" type="datetime-local">
+        </div>
+
+        <button class="btn btn-primary btn-block" id="schedule-save-btn" type="button">Schedule</button>
+    </div>
+</div>
+
+<div class="success-toast hidden" id="schedule-success" role="status" aria-live="polite">
+    <span class="material-symbols-outlined">check_circle</span>
+    <p>Email scheduled successfully</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const LOGIN_URL = "{% url 'login' %}";
+</script>
+<script src="{% static 'js/common.js' %}"></script>
+<script src="{% static 'js/job.js' %}"></script>
+{% endblock %}

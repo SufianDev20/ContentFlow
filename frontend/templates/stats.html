@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CONTENTFLOW AI - Stats{% endblock %}
+{% block body_class %}page main-with-sidebar{% endblock %}
+
+{% block extra_head %}
+<script>
+    window.authenticated = true;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% include "nav.html" with active_page="stats" %}
+
+<main id="main-content" class="container mt-6" style="flex:1; padding-top: 80px;">
+    <h1 class="text-headline mb-4">Stats</h1>
+
+    <div class="stats-grid mb-6">
+        <div class="stat-card enter">
+            <p class="stat-value" id="stat-total-jobs">—</p>
+            <p class="stat-label">Total jobs</p>
+            <p class="stat-change positive" id="stat-total-jobs-change">+12%</p>
+        </div>
+        <div class="stat-card enter" style="animation-delay: 0.06s;">
+            <p class="stat-value" id="stat-total-outputs">—</p>
+            <p class="stat-label">Total outputs</p>
+            <p class="stat-change positive" id="stat-total-outputs-change">+8%</p>
+        </div>
+        <div class="stat-card enter" style="animation-delay: 0.12s;">
+            <p class="stat-value" id="stat-best-model">—</p>
+            <p class="stat-label">Best model</p>
+        </div>
+        <div class="stat-card enter" style="animation-delay: 0.18s;">
+            <p class="stat-value" id="stat-avg-quality">—</p>
+            <p class="stat-label">Avg quality</p>
+            <p class="stat-change positive" id="stat-avg-quality-change">+5%</p>
+        </div>
+    </div>
+
+    <div id="empty-state" class="empty-state hidden" role="status">Generate some content to see your stats.</div>
+
+    <div id="stats-content">
+        <div class="card mb-6 enter" style="animation-delay: 0.1s;">
+            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Avg Quality by Model vs Format</h2>
+            <canvas id="qualityChart" height="300" aria-label="Quality chart showing average quality by model and format"></canvas>
+        </div>
+
+        <div class="card mb-6 enter" style="animation-delay: 0.13s;">
+            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Scheduled Email Status</h2>
+            <canvas id="sendStatusChart" height="200" aria-label="Scheduled email counts by status"></canvas>
+        </div>
+
+        <div class="card mb-6 enter" style="animation-delay: 0.14s; padding: var(--space-6); overflow-x:auto;">
+            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Scheduling Activity</h2>
+            <table class="data-table" id="scheduling-activity-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Scheduled</th>
+                        <th scope="col">Sent</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduling-activity-tbody"></tbody>
+            </table>
+        </div>
+
+        <div class="card enter" style="animation-delay: 0.16s; padding: var(--space-6); overflow-x:auto;">
+            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Model Efficiency</h2>
+            <div class="row gap-2 mb-4 justify-content-end">
+                <button class="btn btn-secondary btn-sm" aria-label="Export statistics as CSV">
+                    <span class="material-symbols-outlined">download</span>
+                    Export CSV
+                </button>
+            </div>
+            <table class="data-table" id="stats-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Model Name</th>
+                        <th scope="col">Avg Latency (ms)</th>
+                        <th scope="col">Tokens/sec</th>
+                        <th scope="col">Total Generations</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="page-footer">
+        <div class="container page-footer-content">
+            <p class="text-sm text-muted">© 2024 ContentFlow AI</p>
+            <div class="page-footer-links">
+                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
+                <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
+                <a href="#" aria-label="Get support">Support</a>
+            </div>
+        </div>
+    </footer>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const LOGIN_URL = "{% url 'login' %}";
+</script>
+<script src="{% static 'js/common.js' %}"></script>
+<script src="{% static 'js/stats.js' %}"></script>
+{% endblock %}
