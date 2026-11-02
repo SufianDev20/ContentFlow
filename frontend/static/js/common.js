@@ -232,9 +232,23 @@ function initSidebarToggle() {
 
 function applyTheme(theme) {
     const themeValue = theme === 'light' ? 'light' : 'dark';
+    const changed = document.documentElement.getAttribute('data-theme') !== themeValue;
     document.documentElement.setAttribute('data-theme', themeValue);
     document.body.setAttribute('data-theme', themeValue);
     localStorage.setItem('theme_preference', themeValue);
+    document.querySelectorAll('.theme-toggle-label').forEach((el) => {
+        el.textContent = themeValue === 'light' ? 'Dark theme' : 'Light theme';
+    });
+    if (changed) document.dispatchEvent(new CustomEvent('themechange', { detail: themeValue }));
+}
+
+function initThemeToggle() {
+    document.querySelectorAll('.theme-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            applyTheme(current === 'light' ? 'dark' : 'light');
+        });
+    });
 }
 
 function updateHeaderProfile(displayName = '', imageUrl = '') {
@@ -267,6 +281,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initSidebarToggle();
+    initThemeToggle();
+    applyTheme(localStorage.getItem('theme_preference') || 'dark');
 
     // CHANGED: we can no longer check `localStorage.getItem('access_token')`
     // to know if the user is logged in, since the token is httpOnly and
@@ -281,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const response = await apiFetch('/auth/me/');
         if (response && !response.error) {
-            applyTheme(response.theme_preference || localStorage.getItem('theme_preference') || 'dark');
+            applyTheme(localStorage.getItem('theme_preference') || response.theme_preference || 'dark');
             const displayName = response.display_name || response.full_name || 'Profile';
             const avatarUrl = response.profile?.avatar_url || '';
             updateHeaderProfile(displayName, avatarUrl);

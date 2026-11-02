@@ -1,43 +1,58 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}CONTENTFLOW AI - Register{% endblock %}
-{% block body_class %}page-centered{% endblock %}
+{% block title %}ContentFlow AI - Register{% endblock %}
+{% block body_class %}page auth-page{% endblock %}
 
 {% block content %}
-<a href="/" class="topnav-wordmark mb-6 d-block text-center" style="font-size:22px; text-decoration:none;">ContentFlow AI</a>
-<main class="card card-elevated" style="width:100%; max-width:420px;">
-    <div class="text-center mb-6">
-        <h1 class="text-headline" style="color: var(--color-on-surface);">Create your account</h1>
-        <p class="text-sm mt-2" style="color: var(--color-on-surface-variant);">Start repurposing content in minutes.</p>
+<div class="auth">
+    <div class="auth-side">
+        <a class="brand" href="/" aria-label="ContentFlow AI home">
+            <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff4a1f"/><path d="M6 9h16M6 14h11M6 19h6" stroke="#18191b" stroke-width="3"/></svg>
+            <span>ContentFlow AI</span>
+        </a>
+
+        <main id="main-content" class="auth-card">
+            <h1>Create your account</h1>
+            <p class="page-sub">Start repurposing content in minutes.</p>
+
+            <div id="form-error" class="form-error-banner mb-4" role="alert" aria-live="assertive"></div>
+
+            <form id="register-form" class="stack">
+                {% csrf_token %}
+                <div class="field">
+                    <label for="full_name">Full name</label>
+                    <input class="input" id="full_name" name="full_name" type="text" maxlength="100" required autocomplete="name" aria-describedby="name-help">
+                    <small id="name-help">Shown in the app next to your avatar.</small>
+                </div>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input class="input" id="email" name="email" type="email" required autocomplete="email" aria-describedby="email-help">
+                    <small id="email-help">You will log in with this address.</small>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input class="input" id="password" name="password" type="password" required autocomplete="new-password" aria-describedby="password-help">
+                    <small id="password-help">At least 8 characters.</small>
+                </div>
+                <button class="btn btn-primary btn-block" id="submit-btn" type="submit">Create account</button>
+            </form>
+        </main>
+
+        <p class="auth-foot">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
     </div>
 
-    <div id="form-error" class="form-error-banner mb-4" role="alert" aria-live="assertive"></div>
-
-    <form id="register-form" class="stack gap-4">
-        {% csrf_token %}
-        <div class="field">
-            <label for="full_name">Full name</label>
-            <input class="input" id="full_name" name="full_name" type="text" maxlength="100" required autocomplete="name" aria-describedby="name-help">
-            <small id="name-help" class="cf-text-muted text-sm">Enter your full name for display</small>
-        </div>
-        <div class="field">
-            <label for="email">Email</label>
-            <input class="input" id="email" name="email" type="email" required autocomplete="email" aria-describedby="email-help">
-            <small id="email-help" class="cf-text-muted text-sm">We'll send account confirmation to this email</small>
-        </div>
-        <div class="field">
-            <label for="password">Password</label>
-            <input class="input" id="password" name="password" type="password" required autocomplete="new-password" aria-describedby="password-help">
-            <small id="password-help" class="cf-text-muted text-sm">Use a strong password with at least 8 characters</small>
-        </div>
-        <button class="btn btn-primary btn-block mt-2" id="submit-btn" type="submit" aria-label="Create new account">Create account</button>
-    </form>
-
-    <p class="text-sm text-center mt-4" style="color: var(--color-on-surface-variant);">
-        Already have an account? <a class="text-primary" href="{% url 'login' %}" style="color: var(--color-primary);">Login</a>
-    </p>
-</main>
+    <aside class="auth-aside" aria-label="What ContentFlow makes">
+        <h2>One post, four formats.</h2>
+        <p class="lead">Paste an article or a URL. Get each format back with its latency, tokens and quality score.</p>
+        <ul class="auth-formats">
+            <li>Tweet thread</li>
+            <li>LinkedIn post</li>
+            <li>Newsletter email</li>
+            <li>TL;DR</li>
+        </ul>
+    </aside>
+</div>
 {% endblock %}
 
 {% block extra_js %}

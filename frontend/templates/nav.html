@@ -1,107 +1,42 @@
 {% comment %} Include with: {% include "nav.html" with active_page="dashboard" %} {% endcomment %}
-{% if active_page %}
-    {# Authenticated pages with sidebar #}
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">ContentFlow AI</div>
-            <button class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle sidebar">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-        </div>
-        <div class="sidebar-section">
-            <div class="sidebar-section-label">Developer Tools</div>
-            <nav class="sidebar-nav">
-                <a href="{% url 'dashboard' %}" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Dashboard
-                </a>
-                <a href="{% url 'history' %}" class="sidebar-link {% if active_page == 'history' %}active{% endif %}">
-                    <span class="material-symbols-outlined">history</span>
-                    History
-                </a>
-                <a href="{% url 'stats' %}" class="sidebar-link {% if active_page == 'stats' %}active{% endif %}">
-                    <span class="material-symbols-outlined">analytics</span>
-                    Stats
-                </a>
-            </nav>
-        </div>
-        <div class="sidebar-footer">
-            <button type="button" class="sidebar-link settings-trigger">
-                <div class="nav-avatar-preview">
-                    <span class="nav-avatar-initial">?</span>
-                    <img class="nav-avatar-img hidden" alt="Avatar">
-                </div>
-                <span class="material-symbols-outlined">settings</span>
-                Settings
-            </button>
-            <a href="{% url 'logout' %}" class="sidebar-link">
-                <span class="material-symbols-outlined">logout</span>
-                Logout
-            </a>
-        </div>
-    </aside>
-
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    <button class="sidebar-reopen-btn" id="sidebar-reopen" aria-label="Open sidebar">
-       <span class="material-symbols-outlined">menu</span>
-    </button>
-
-    <header class="mobile-header">
-        <div class="mobile-header-logo">ContentFlow AI</div>
-        <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Open menu">
-            <span class="material-symbols-outlined">menu</span>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <a class="sidebar-logo" href="{% url 'dashboard' %}" aria-label="ContentFlow AI">
+            <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff4a1f"/><path d="M6 9h16M6 14h11M6 19h6" stroke="#18191b" stroke-width="3"/></svg>
+            <span>ContentFlow AI</span>
+        </a>
+        <button class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-    </header>
-
-    <div class="mobile-drawer" id="mobile-drawer">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">ContentFlow AI</div>
-            <button class="sidebar-toggle-btn" id="mobile-drawer-toggle" aria-label="Close drawer">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        <div class="sidebar-section">
-            <div class="sidebar-section-label">Developer Tools</div>
-            <nav class="sidebar-nav">
-                <a href="{% url 'dashboard' %}" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Dashboard
-                </a>
-                <a href="{% url 'history' %}" class="sidebar-link {% if active_page == 'history' %}active{% endif %}">
-                    <span class="material-symbols-outlined">history</span>
-                    History
-                </a>
-                <a href="{% url 'stats' %}" class="sidebar-link {% if active_page == 'stats' %}active{% endif %}">
-                    <span class="material-symbols-outlined">analytics</span>
-                    Stats
-                </a>
-            </nav>
-        </div>
-        <div class="sidebar-footer">
-            <button type="button" class="sidebar-link settings-trigger">
-                <div class="nav-avatar-preview">
-                    <span class="nav-avatar-initial">?</span>
-                    <img class="nav-avatar-img hidden" alt="Avatar">
-                </div>
-                <span class="material-symbols-outlined">settings</span>
-                Settings
-            </button>
-            <a href="{% url 'logout' %}" class="sidebar-link">
-                <span class="material-symbols-outlined">logout</span>
-                Logout
-            </a>
-        </div>
     </div>
-    <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
-{% else %}
-    {# Landing page with top navigation #}
-    <nav class="topnav">
-        <div class="container">
-            <span class="topnav-wordmark">ContentFlow AI</span>
-            <div class="topnav-links">
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
-            </div>
-        </div>
-    </nav>
-{% endif %}
+    {% include "nav_items.html" %}
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<button class="sidebar-reopen-btn" id="sidebar-reopen" aria-label="Open sidebar">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+</button>
+
+<header class="mobile-header">
+    <a class="sidebar-logo" href="{% url 'dashboard' %}" aria-label="ContentFlow AI">
+        <svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff4a1f"/><path d="M6 9h16M6 14h11M6 19h6" stroke="#18191b" stroke-width="3"/></svg>
+        <span>ContentFlow AI</span>
+    </a>
+    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Open menu">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+</header>
+
+<div class="mobile-drawer" id="mobile-drawer">
+    <div class="sidebar-header">
+        <span class="sidebar-logo">
+            <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff4a1f"/><path d="M6 9h16M6 14h11M6 19h6" stroke="#18191b" stroke-width="3"/></svg>
+            <span>ContentFlow AI</span>
+        </span>
+        <button class="mobile-menu-btn" id="mobile-drawer-toggle" aria-label="Close menu">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+    </div>
+    {% include "nav_items.html" %}
+</div>
+<div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>

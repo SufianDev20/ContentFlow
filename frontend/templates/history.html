@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}CONTENTFLOW AI - History{% endblock %}
+{% block title %}ContentFlow AI - History{% endblock %}
 {% block body_class %}page main-with-sidebar{% endblock %}
 
 {% block extra_head %}
@@ -13,35 +13,28 @@
 {% block content %}
 {% include "nav.html" with active_page="history" %}
 
-<main id="main-content" class="container mt-6" style="flex:1; padding-top: 80px;">
-    <h1 class="text-headline mb-4">History</h1>
-
-    <div class="search-bar">
-        <span class="material-symbols-outlined">search</span>
-        <input type="text" placeholder="Search jobs..." id="search-input" aria-label="Search job history">
+<main id="main-content" class="app-main">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">History</h1>
+            <p class="page-sub">Every job you have generated, newest first.</p>
+        </div>
+        <div class="search-bar">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+            <input class="input" type="search" placeholder="Filter this page" id="search-input" aria-label="Filter jobs on this page">
+        </div>
     </div>
 
-    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
-        <button class="btn btn-secondary" style="padding: 4px 8px !important; font-size: 12px !important;" aria-label="Filter job history">
-            <span class="material-symbols-outlined" style="font-size: 16px !important;">filter_list</span>
-            Filter
-        </button>
-        <button class="btn btn-secondary" style="padding: 4px 8px !important; font-size: 12px !important;" aria-label="Export job history">
-            <span class="material-symbols-outlined" style="font-size: 16px !important;">download</span>
-            Export
-        </button>
-    </div>
-
-    <div class="card enter" style="padding:0; overflow-x:auto;">
-        <table class="data-table">
+    <div class="card card-flush">
+        <table class="data-table" id="history-table">
             <thead>
                 <tr>
                     <th scope="col">Date</th>
                     <th scope="col">ID</th>
                     <th scope="col">Model</th>
-                    <th scope="col">Word Count</th>
+                    <th scope="col" class="num">Words</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" class="actions"><span class="sr-only">Actions</span></th>
                 </tr>
             </thead>
             <tbody id="history-tbody"></tbody>
@@ -50,19 +43,10 @@
 
     <div id="empty-state" class="empty-state hidden" role="status">No jobs yet. Generate some content to see your history.</div>
     <div id="pagination-info" class="pagination-info"></div>
-    <div id="pagination-controls" class="pagination-controls mt-4" aria-label="Job history pagination"></div>
+    <div id="pagination-controls" class="pagination-controls" aria-label="Job history pagination"></div>
 </main>
 
-<footer class="page-footer">
-    <div class="container page-footer-content">
-        <p class="text-sm text-muted">© 2024 ContentFlow AI</p>
-        <div class="page-footer-links">
-            <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
-            <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
-            <a href="#" aria-label="Get support">Support</a>
-        </div>
-    </div>
-</footer>
+{% include "footer.html" %}
 {% endblock %}
 
 {% block extra_js %}

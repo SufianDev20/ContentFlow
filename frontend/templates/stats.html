@@ -1,105 +1,96 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}CONTENTFLOW AI - Stats{% endblock %}
+{% block title %}ContentFlow AI - Stats{% endblock %}
 {% block body_class %}page main-with-sidebar{% endblock %}
 
 {% block extra_head %}
 <script>
     window.authenticated = true;
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block content %}
 {% include "nav.html" with active_page="stats" %}
 
-<main id="main-content" class="container mt-6" style="flex:1; padding-top: 80px;">
-    <h1 class="text-headline mb-4">Stats</h1>
-
-    <div class="stats-grid mb-6">
-        <div class="stat-card enter">
-            <p class="stat-value" id="stat-total-jobs">—</p>
-            <p class="stat-label">Total jobs</p>
-            <p class="stat-change positive" id="stat-total-jobs-change">+12%</p>
-        </div>
-        <div class="stat-card enter" style="animation-delay: 0.06s;">
-            <p class="stat-value" id="stat-total-outputs">—</p>
-            <p class="stat-label">Total outputs</p>
-            <p class="stat-change positive" id="stat-total-outputs-change">+8%</p>
-        </div>
-        <div class="stat-card enter" style="animation-delay: 0.12s;">
-            <p class="stat-value" id="stat-best-model">—</p>
-            <p class="stat-label">Best model</p>
-        </div>
-        <div class="stat-card enter" style="animation-delay: 0.18s;">
-            <p class="stat-value" id="stat-avg-quality">—</p>
-            <p class="stat-label">Avg quality</p>
-            <p class="stat-change positive" id="stat-avg-quality-change">+5%</p>
+<main id="main-content" class="app-main">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Stats</h1>
+            <p class="page-sub">How your models perform across every format you have generated.</p>
         </div>
     </div>
+
+    <dl class="kpis">
+        <div class="kpi">
+            <dt class="kpi-label">Total jobs</dt>
+            <dd class="kpi-value" id="stat-total-jobs">—</dd>
+        </div>
+        <div class="kpi">
+            <dt class="kpi-label">Total outputs</dt>
+            <dd class="kpi-value" id="stat-total-outputs">—</dd>
+        </div>
+        <div class="kpi">
+            <dt class="kpi-label">Best model</dt>
+            <dd class="kpi-value" id="stat-best-model">—</dd>
+        </div>
+        <div class="kpi">
+            <dt class="kpi-label">Average quality (out of 100)</dt>
+            <dd class="kpi-value" id="stat-avg-quality">—</dd>
+        </div>
+    </dl>
 
     <div id="empty-state" class="empty-state hidden" role="status">Generate some content to see your stats.</div>
 
     <div id="stats-content">
-        <div class="card mb-6 enter" style="animation-delay: 0.1s;">
-            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Avg Quality by Model vs Format</h2>
-            <canvas id="qualityChart" height="300" aria-label="Quality chart showing average quality by model and format"></canvas>
+        <div class="stats-grid">
+            <section class="card">
+                <h2 class="panel-title">Average quality by model and format</h2>
+                <div class="chart-box"><canvas id="qualityChart" aria-label="Average quality by model and format"></canvas></div>
+            </section>
+
+            <section class="card">
+                <h2 class="panel-title">Scheduled email status</h2>
+                <div class="chart-box"><canvas id="sendStatusChart" aria-label="Scheduled email counts by status"></canvas></div>
+            </section>
         </div>
 
-        <div class="card mb-6 enter" style="animation-delay: 0.13s;">
-            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Scheduled Email Status</h2>
-            <canvas id="sendStatusChart" height="200" aria-label="Scheduled email counts by status"></canvas>
-        </div>
+        <div class="stats-grid stats-grid-tables">
+            <section class="card card-flush">
+                <h2 class="panel-title" style="padding: 20px 20px 0;">Model efficiency</h2>
+                <table class="data-table" id="stats-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Model</th>
+                            <th scope="col" class="num">Avg latency (ms)</th>
+                            <th scope="col" class="num">Tokens/sec</th>
+                            <th scope="col" class="num">Generations</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-tbody"></tbody>
+                </table>
+            </section>
 
-        <div class="card mb-6 enter" style="animation-delay: 0.14s; padding: var(--space-6); overflow-x:auto;">
-            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Scheduling Activity</h2>
-            <table class="data-table" id="scheduling-activity-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Scheduled</th>
-                        <th scope="col">Sent</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduling-activity-tbody"></tbody>
-            </table>
-        </div>
-
-        <div class="card enter" style="animation-delay: 0.16s; padding: var(--space-6); overflow-x:auto;">
-            <h2 class="text-headline mb-4" style="font-size: 18px; color: var(--color-on-surface, #f8fafc);">Model Efficiency</h2>
-            <div class="row gap-2 mb-4 justify-content-end">
-                <button class="btn btn-secondary btn-sm" aria-label="Export statistics as CSV">
-                    <span class="material-symbols-outlined">download</span>
-                    Export CSV
-                </button>
-            </div>
-            <table class="data-table" id="stats-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Model Name</th>
-                        <th scope="col">Avg Latency (ms)</th>
-                        <th scope="col">Tokens/sec</th>
-                        <th scope="col">Total Generations</th>
-                        <th scope="col">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="stats-tbody"></tbody>
-            </table>
+            <section class="card card-flush">
+                <h2 class="panel-title" style="padding: 20px 20px 0;">Scheduling activity</h2>
+                <table class="data-table" id="scheduling-activity-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col" class="num">Scheduled</th>
+                            <th scope="col" class="num">Sent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduling-activity-tbody"></tbody>
+                </table>
+            </section>
         </div>
     </div>
-
-    <footer class="page-footer">
-        <div class="container page-footer-content">
-            <p class="text-sm text-muted">© 2024 ContentFlow AI</p>
-            <div class="page-footer-links">
-                <a href="/api/docs/" target="_blank" rel="noopener noreferrer" aria-label="View API documentation">Docs</a>
-                <a href="/api/schema/" target="_blank" rel="noopener noreferrer" aria-label="Download OpenAPI schema">API</a>
-                <a href="#" aria-label="Get support">Support</a>
-            </div>
-        </div>
-    </footer>
 </main>
+
+{% include "footer.html" %}
 {% endblock %}
 
 {% block extra_js %}

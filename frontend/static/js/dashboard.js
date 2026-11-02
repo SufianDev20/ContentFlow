@@ -286,7 +286,7 @@ function renderRatingWidget(outputId, currentRating) {
     let stars = '';
     for (let i = 1; i <= 5; i++) {
         const filled = currentRating && i <= currentRating ? 'filled' : '';
-        stars += `<span class="star ${filled}" data-output-id="${outputId}" data-value="${i}">★</span>`;
+        stars += `<span class="star ${filled}" data-output-id="${outputId}" data-value="${i}" role="button" aria-label="Rate ${i} of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg></span>`;
     }
     return `<div class="rating-widget">${stars}</div>`;
 }

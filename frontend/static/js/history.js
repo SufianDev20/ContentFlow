@@ -2,6 +2,12 @@
 // from common.js, which sends the httpOnly cookie via credentials:
 // 'include' and retries once after a refresh on 401.
 
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+}
+
 function formatDate(iso) {
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -64,17 +70,13 @@ async function loadHistory(page = 1) {
         row.className = 'clickable';
         row.innerHTML = `
       <td>${formatDate(job.created_at)}</td>
-      <td class="text-mono">${job.id.substring(0, 8)}...</td>
-      <td class="text-mono">${job.model}</td>
-      <td class="text-mono">${job.word_count}</td>
+      <td>${job.id.substring(0, 8)}</td>
+      <td>${escapeHtml(job.model)}</td>
+      <td class="num">${job.word_count}</td>
       <td><span class="${badgeClass(job.status)}">${job.status}</span></td>
-      <td>
-        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="event.stopPropagation(); window.location.href = '${JOB_URL_BASE}?id=${job.id}'">
-          <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-        </button>
-        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="event.stopPropagation(); deleteJob('${job.id}')">
-          <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-        </button>
+      <td class="actions">
+        <button class="btn btn-secondary btn-sm view-btn" onclick="event.stopPropagation(); window.location.href = '${JOB_URL_BASE}?id=${job.id}'">View</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteJob('${job.id}')">Delete</button>
       </td>
     `;
         row.addEventListener('click', () => {
@@ -97,6 +99,17 @@ async function deleteJob(jobId) {
     }
 
     loadHistory();
+}
+
+// Filter the rows on the current page by anything in the row's text.
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        document.querySelectorAll('#history-tbody tr').forEach((tr) => {
+            tr.classList.toggle('hidden', q !== '' && !tr.textContent.toLowerCase().includes(q));
+        });
+    });
 }
 
 loadHistory();

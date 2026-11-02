@@ -2,6 +2,18 @@
 // Populates the Stats page: summary cards, efficiency table, and quality chart.
 // Matches apps.stats.views.SummaryStatsView and ModelStatsView response shapes exactly.
 
+function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function chartPalette() {
+    return [1, 2, 3, 4, 5].map((n) => cssVar(`--chart-${n}`));
+}
+
+function chartTheme() {
+    return { text: cssVar('--muted'), grid: cssVar('--chart-grid') };
+}
+
 let qualityChartInstance = null;
 let sendStatusChartInstance = null;
 
@@ -22,7 +34,6 @@ function renderSummary(summary) {
     document.getElementById('stat-total-outputs').textContent = summary.total_outputs;
     document.getElementById('stat-best-model').textContent = formatModelName(summary.best_model_overall);
     document.getElementById('stat-avg-quality').textContent = `${summary.avg_quality_score}`;
-    // The percentage changes are hardcoded in the template as per the design
 }
 
 function renderEfficiencyTable(rows) {
@@ -61,10 +72,10 @@ function renderEfficiencyTable(rows) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td class="text-mono">${formatModelName(data.model)}</td>
-      <td class="text-mono">${avgLatency}</td>
-      <td class="text-mono">${avgTokensPerSec}</td>
-      <td class="text-mono">${data.totalGenerations}</td>
+      <td>${formatModelName(data.model)}</td>
+      <td class="num">${avgLatency}</td>
+      <td class="num">${avgTokensPerSec}</td>
+      <td class="num">${data.totalGenerations}</td>
       <td class="${statusClass}">${status}</td>
     `;
         tbody.appendChild(tr);
@@ -108,21 +119,14 @@ function renderChart(rows) {
         return;
     }
 
-    // Distinct palette array for output formats
-    const colors = [
-        '#a855f7', // Purple
-        '#3b82f6', // Blue
-        '#10b981', // Emerald Green
-        '#f59e0b', // Amber/Orange
-        '#ec4899', // Pink
-        '#06b6d4'  // Cyan
-    ];
+    const colors = chartPalette();
+    const theme = chartTheme();
 
     const datasets = formats.map((format, index) => ({
         label: format,
         data: models.map((model) => byModelFormat[model][format] || 0),
         backgroundColor: colors[index % colors.length],
-        borderRadius: 4
+        borderRadius: 0
     }));
 
     qualityChartInstance = new Chart(canvas, {
@@ -133,32 +137,30 @@ function renderChart(rows) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
+                    align: 'start',
                     labels: {
-                        color: '#cbd5e1',
-                        font: { size: 12, weight: '500' }
+                        color: theme.text,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        font: { size: 12 }
                     }
                 }
             },
             scales: {
                 x: {
-                    ticks: {
-                        color: '#cbd5e1',
-                        font: { size: 11 }
-                    },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    ticks: { color: theme.text, font: { size: 12 } },
+                    grid: { display: false }
                 },
                 y: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: {
-                        color: '#cbd5e1',
-                        font: { size: 11 }
-                    },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    ticks: { color: theme.text, font: { size: 12 }, stepSize: 25 },
+                    grid: { color: theme.grid }
                 }
             }
         }
@@ -182,15 +184,18 @@ function renderSendStatusChart(statusCounts) {
             labels,
             datasets: [{
                 data,
-                backgroundColor: ['#94a3b8', '#3b82f6', '#10b981', '#ef4444', '#f59e0b']
+                backgroundColor: chartPalette(),
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
             plugins: {
                 legend: {
                     position: 'right',
-                    labels: { color: '#cbd5e1', font: { size: 12 } }
+                    labels: { color: chartTheme().text, boxWidth: 10, boxHeight: 10, font: { size: 12 } }
                 }
             }
         }
@@ -205,9 +210,9 @@ function renderSchedulingActivityTable(activity) {
     activity.forEach((row) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td class="text-mono">${row.day}</td>
-      <td class="text-mono">${row.scheduled_count}</td>
-      <td class="text-mono">${row.sent_count}</td>
+      <td>${row.day}</td>
+      <td class="num">${row.scheduled_count}</td>
+      <td class="num">${row.sent_count}</td>
     `;
         tbody.appendChild(tr);
     });
@@ -251,3 +256,11 @@ async function loadStats() {
 
 loadStats();
 loadSchedulingStats();
+
+// Charts read their colours from CSS variables, so redraw them when the theme changes.
+document.addEventListener('themechange', () => {
+    if (!document.getElementById('stats-content').classList.contains('hidden')) {
+        loadStats();
+        loadSchedulingStats();
+    }
+});

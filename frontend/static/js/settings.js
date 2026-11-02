@@ -19,8 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fullNameInput = document.getElementById('settings-full-name');
     const defaultModelSelect = document.getElementById('settings-default-model');
-    const themeColorPicker = document.getElementById('settings-theme-color');
-    const themeColorHex = document.getElementById('settings-theme-color-hex');
     const saveBtn = document.getElementById('settings-save-btn');
 
     const deleteAccountBtn = document.getElementById('settings-delete-account-btn');
@@ -33,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modalOverlay) return;
 
     let currentUser = null;
-    let originalTheme = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
 
     function showSettingsError(message) {
         errorEl.textContent = message;
@@ -48,13 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showSettingsSuccess() {
         successEl.classList.remove('hidden');
         setTimeout(() => successEl.classList.add('hidden'), 2500);
-    }
-
-    function applyThemePreview(hex) {
-        if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
-            document.documentElement.style.setProperty('--color-primary', hex);
-            document.documentElement.style.setProperty('--color-primary-container', hex);
-        }
     }
 
     function updateAvatarDisplay(user) {
@@ -117,10 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = result;
         fullNameInput.value = result.full_name || '';
 
-        const theme = result.profile?.theme_color || '#8A2BE2';
-        themeColorPicker.value = theme;
-        themeColorHex.value = theme;
-
         updateAvatarDisplay(result);
         await populateModelOptions(result.profile?.default_model || '');
     }
@@ -133,11 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeModal() {
         modalOverlay.classList.add('hidden');
         clearSettingsError();
-        if (currentUser?.profile?.theme_color) {
-            applyThemePreview(currentUser.profile.theme_color);
-        } else {
-            document.documentElement.style.setProperty('--color-primary', originalTheme);
-        }
     }
 
     settingsTriggers.forEach((trigger) => trigger.addEventListener('click', openModal));
@@ -147,20 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalClose) modalClose.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeModal();
-    });
-
-    // ---- Theme color sync ----
-    themeColorPicker.addEventListener('input', () => {
-        themeColorHex.value = themeColorPicker.value;
-        applyThemePreview(themeColorPicker.value);
-    });
-
-    themeColorHex.addEventListener('input', () => {
-        const value = themeColorHex.value.trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-            themeColorPicker.value = value;
-            applyThemePreview(value);
-        }
     });
 
     // ---- Avatar upload with instant local preview ----
@@ -255,12 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const themeColor = themeColorHex.value.trim();
-        if (!/^#[0-9a-fA-F]{6}$/.test(themeColor)) {
-            showSettingsError('Enter a valid hex color, e.g. #8A2BE2.');
-            return;
-        }
-
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving…';
 
@@ -268,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'PATCH',
             body: JSON.stringify({
                 full_name: fullName,
-                theme_color: themeColor,
                 default_model: defaultModelSelect.value
             })
         });
