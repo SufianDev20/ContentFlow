@@ -113,14 +113,11 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 "default_model contains invalid characters."
             )
 
-        # NEW: cross-check against the same source that powers the
-        # /models/available/ endpoint. Replace `get_available_models()`
-        # with whatever function/service currently backs that endpoint —
-        # it wasn't in the uploaded files, so this is a call site you need
-        # to wire up, not new logic to write from scratch.
-        from apps.jobs.services import get_available_models  # ADJUST IMPORT PATH
+        # Cross-check against the same source that powers the
+        # /models/available/ endpoint (apps/jobs/views.py AvailableModelsView).
+        from apps.jobs.services.repurposer import get_available_free_model
 
-        if value not in get_available_models():
+        if value not in get_available_free_model():
             raise serializers.ValidationError(
                 "default_model is not a currently available model."
             )
