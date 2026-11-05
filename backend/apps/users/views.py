@@ -15,6 +15,7 @@ Endpoints:
 """
 
 import uuid as _uuid
+from cloudinary import uploader as cloudinary_uploader
 from django.conf import settings
 from rest_framework import permissions, status, generics
 from rest_framework.response import Response
@@ -64,6 +65,20 @@ def _set_jwt_cookies(response, access, refresh=None):
             samesite=cfg["AUTH_COOKIE_SAMESITE"],
             path="/api/v1/auth/",
         )
+
+
+def _delete_cloudinary_resource(resource):
+    """Delete a Cloudinary asset referenced by a CloudinaryField value."""
+    public_id = getattr(resource, "public_id", None)
+    if not public_id:
+        return
+
+    cloudinary_uploader.destroy(
+        public_id,
+        invalidate=True,
+        resource_type=getattr(resource, "resource_type", "image"),
+        type=getattr(resource, "type", "upload"),
+    )
 
 
 class RegisterView(generics.CreateAPIView):
@@ -180,8 +195,7 @@ class AvatarView(APIView):
         serializer.is_valid(raise_exception=True)
 
         profile, _ = Profile.objects.get_or_create(user=request.user)
-        if profile.avatar:
-            profile.avatar.delete(save=False)
+        previous_avatar = profile.avatar
 
         uploaded = serializer.validated_data["avatar"]
         ext = getattr(uploaded, "verified_extension", None)
@@ -189,6 +203,8 @@ class AvatarView(APIView):
             uploaded.name = f"{_uuid.uuid4().hex}.{ext}"
         profile.avatar = uploaded
         profile.save()
+        if previous_avatar:
+            _delete_cloudinary_resource(previous_avatar)
 
         user = User.objects.select_related("profile").get(pk=request.user.pk)
         response_serializer = UserSerializer(user, context={"request": request})
@@ -197,7 +213,7 @@ class AvatarView(APIView):
     def delete(self, request):
         profile = getattr(request.user, "profile", None)
         if profile and profile.avatar:
-            profile.avatar.delete(save=False)
+            _delete_cloudinary_resource(profile.avatar)
             profile.avatar = None
             profile.save()
 
