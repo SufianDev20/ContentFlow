@@ -235,7 +235,7 @@ class AccountDeleteView(APIView):
         user = request.user
         profile = getattr(user, "profile", None)
         if profile and profile.avatar:
-            profile.avatar.delete(save=False)
+            _delete_cloudinary_resource(profile.avatar)
 
         user.delete()
         response = Response(status=status.HTTP_204_NO_CONTENT)
