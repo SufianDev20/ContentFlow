@@ -39,7 +39,7 @@ CORS_ALLOWED_ORIGINS = env.list(
 )
 CORS_ALLOW_CREDENTIALS = True
 JWT_SIGNING_KEY = env("JWT_SIGNING_KEY")
-
+CLOUDINARY_URL = env("CLOUDINARY_URL")
 # Email — used for scheduled email sends (apps.scheduling) and their
 # account-owner confirmation notifications. Defaults to Django's console
 # backend so local dev works without SMTP credentials configured.
@@ -181,6 +181,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Cloudinary reads CLOUDINARY_URL from the environment. Keep delivery URLs
 # HTTPS even when the application is running behind Render's proxy.
+cloudinary.reset_config()  # re-read CLOUDINARY_URL now that .env is loaded
 cloudinary.config(secure=True)
 
 # # 2. Make sure these default finders are explicitly defined

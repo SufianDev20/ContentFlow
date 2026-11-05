@@ -14,9 +14,12 @@ Endpoints:
   DELETE /api/v1/auth/account/         - hard delete account (requires password)
 """
 
+import logging
 import uuid as _uuid
+import cloudinary.exceptions
 from cloudinary import uploader as cloudinary_uploader
 from django.conf import settings
+from django.db import transaction
 from rest_framework import permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -33,6 +36,9 @@ from .serializers import (
     AvatarUploadSerializer,
     AccountDeleteSerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class AuthRateThrottle(AnonRateThrottle):
@@ -68,17 +74,22 @@ def _set_jwt_cookies(response, access, refresh=None):
 
 
 def _delete_cloudinary_resource(resource):
-    """Delete a Cloudinary asset referenced by a CloudinaryField value."""
+    """Delete a Cloudinary asset; returns False (and logs) if Cloudinary errors."""
     public_id = getattr(resource, "public_id", None)
     if not public_id:
-        return
+        return True
 
-    cloudinary_uploader.destroy(
-        public_id,
-        invalidate=True,
-        resource_type=getattr(resource, "resource_type", "image"),
-        type=getattr(resource, "type", "upload"),
-    )
+    try:
+        cloudinary_uploader.destroy(
+            public_id,
+            invalidate=True,
+            resource_type=getattr(resource, "resource_type", "image"),
+            type=getattr(resource, "type", "upload"),
+        )
+    except cloudinary.exceptions.Error:
+        logger.warning("Cloudinary delete failed for %s", public_id, exc_info=True)
+        return False
+    return True
 
 
 class RegisterView(generics.CreateAPIView):
@@ -202,7 +213,15 @@ class AvatarView(APIView):
         if ext:
             uploaded.name = f"{_uuid.uuid4().hex}.{ext}"
         profile.avatar = uploaded
-        profile.save()
+        try:
+            with transaction.atomic():
+                profile.save()
+        except cloudinary.exceptions.Error:
+            logger.exception("Cloudinary avatar upload failed")
+            return Response(
+                {"detail": "Avatar upload failed. Please try again later."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
         if previous_avatar:
             _delete_cloudinary_resource(previous_avatar)
 
