@@ -28,7 +28,12 @@ from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+    OpenApiResponse,
+    OpenApiParameter,
+)
 from drf_spectacular.types import OpenApiTypes
 from .models import Job
 from apps.stats.models import Output
@@ -325,13 +330,17 @@ class JobStatusView(generics.RetrieveAPIView):
         job = self.get_object()
         total_formats = len(job.formats) if job.formats else 4
         completed_outputs = job.outputs.count()
-        progress_percentage = int((completed_outputs / total_formats) * 100) if total_formats > 0 else 0
+        progress_percentage = (
+            int((completed_outputs / total_formats) * 100) if total_formats > 0 else 0
+        )
 
-        return Response({
-            "id": str(job.id),
-            "status": job.status,
-            "progress": progress_percentage,
-            "total_formats": total_formats,
-            "completed_outputs": completed_outputs,
-            "created_at": job.created_at,
-        })
+        return Response(
+            {
+                "id": str(job.id),
+                "status": job.status,
+                "progress": progress_percentage,
+                "total_formats": total_formats,
+                "completed_outputs": completed_outputs,
+                "created_at": job.created_at,
+            }
+        )

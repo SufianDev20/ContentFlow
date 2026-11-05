@@ -1,4 +1,5 @@
 import uuid
+from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -58,12 +59,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 def avatar_upload_path(instance, filename):
     """
-    Generate a randomized storage path for avatar uploads.
-
-    Never uses the original filename. Only the extension is kept, and only
-    after validation against ALLOWED_AVATAR_EXTENSIONS in the serializer.
-    Path is namespaced by user id so one user can never overwrite another
-    user's file by guessing a path.
+    Preserve the historical upload path for migrations created before
+    avatars moved to CloudinaryField.
     """
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
     return f"avatars/{instance.user_id}/{uuid.uuid4().hex}.{ext}"
@@ -85,7 +82,7 @@ class Profile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name="profile"
     )
-    avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True)
+    avatar = CloudinaryField("avatar", blank=True, null=True, folder="avatars")
     theme_color = models.CharField(
         max_length=7,
         default="#8A2BE2",

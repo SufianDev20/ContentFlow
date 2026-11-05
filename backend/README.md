@@ -679,7 +679,8 @@ pytest apps/jobs/tests/test_x.py::TestClass::test_method   # single test
 
 - Set `DEBUG=False` and generate a cryptographically random `DJANGO_SECRET_KEY` and `JWT_SIGNING_KEY`
 - Use PostgreSQL or another production database
-- Replace local disk media storage with S3/R2 or another object store
+- Configure `CLOUDINARY_URL` in the environment for persistent avatar storage.
+  The avatar field uploads to Cloudinary and Neon stores the Cloudinary asset ID.
 - Store all secrets in environment variables or a secrets manager
 - Configure `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS` for production domains
 - Replace synchronous AI generation with Celery or another async job system

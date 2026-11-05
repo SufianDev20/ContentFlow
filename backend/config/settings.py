@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import environ
+import cloudinary
 from datetime import timedelta
 from urllib.parse import urlparse, parse_qsl
 
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "cloudinary",
     "apps.users",
     "apps.jobs",
     "apps.stats",
@@ -176,6 +178,11 @@ STATICFILES_DIRS = [
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Cloudinary reads CLOUDINARY_URL from the environment. Keep delivery URLs
+# HTTPS even when the application is running behind Render's proxy.
+cloudinary.config(secure=True)
+
 # # 2. Make sure these default finders are explicitly defined
 # STATICFILES_FINDERS = [
 #     "django.contrib.staticfiles.finders.FileSystemFinder",
