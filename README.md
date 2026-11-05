@@ -237,8 +237,7 @@ ContentFlow/
 │   ├── media/
 │   │   └── avatars/
 │   ├── manage.py
-│   ├── requirements.txt
-│   └── README.md
+│   └── requirements.txt
 ├── frontend/
 │   ├── static/
 │   │   ├── css/
