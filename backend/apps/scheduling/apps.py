@@ -10,12 +10,9 @@ class SchedulingConfig(AppConfig):
         import sys
         from django.conf import settings
 
-        # Never start the background scheduler under pytest or `manage.py
-        # migrate`/`test` — those run against a DB that may not be ready,
-        # and a live BackgroundScheduler thread holding a DB connection
-        # open has been observed to hang pytest-django's test-database
-        # teardown. Add other management commands here only if one is
-        # actually observed hitting the same problem.
+        # A live scheduler thread holding a DB connection has been observed to
+        # hang pytest-django's test-database teardown, and migrate/test run
+        # against a DB that may not be ready.
         if "pytest" in sys.modules:
             return
         if {"migrate", "test"}.intersection(sys.argv):

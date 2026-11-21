@@ -1,197 +1,170 @@
-"""
-apps/scheduling/tests/test_views.py
+from datetime import timedelta
 
-Covers:
-- POST /api/v1/scheduled-emails/
-- GET  /api/v1/scheduled-emails/
-- PATCH /api/v1/scheduled-emails/<uuid:pk>/
-- POST /api/v1/scheduled-emails/<uuid:pk>/cancel/
-- Cross-user access is rejected (hard scoping rule).
-"""
-
+import pytest
 from django.urls import reverse
 from django.utils import timezone
-from rest_framework import status
-from rest_framework.test import APITestCase
 
-from apps.jobs.models import Job
 from apps.scheduling.models import ScheduledEmail
-from apps.stats.models import Output
-from apps.users.models import User
+
+Status = ScheduledEmail.Status
+LIST_URL = reverse("scheduled-email-list-create")
 
 
-class ScheduledEmailViewTests(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            email="jane@example.com", password="pass123", full_name="Jane Doe"
-        )
-        self.other_user = User.objects.create_user(
-            email="john@example.com", password="pass123", full_name="John Doe"
-        )
-        self.client.force_authenticate(user=self.user)
+def in_hours(hours):
+    return (timezone.now() + timedelta(hours=hours)).isoformat()
 
-        self.job = Job.objects.create(
-            user=self.user, content="source", model="openai/gpt-4o", status="complete"
-        )
-        self.email_output = Output.objects.create(
-            job=self.job, format="email", text="Newsletter body"
-        )
-        self.tweet_output = Output.objects.create(
-            job=self.job, format="tweet_thread", text="Tweet body"
-        )
 
-        self.list_create_url = reverse("scheduled-email-list-create")
-        self.future_time = timezone.now() + timezone.timedelta(hours=1)
+@pytest.fixture
+def email_output(make_output):
+    return make_output(format="email", text="Newsletter body")
 
-    def _create_payload(self, **overrides):
-        payload = {
-            "output": str(self.email_output.id),
-            "recipients": ["reader@example.com"],
-            "subject": "Weekly update",
-            "scheduled_for": self.future_time.isoformat(),
-        }
-        payload.update(overrides)
-        return payload
 
-    def test_create_scheduled_email_returns_201(self):
-        response = self.client.post(self.list_create_url, self._create_payload())
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ScheduledEmail.objects.count(), 1)
-        scheduled = ScheduledEmail.objects.first()
-        self.assertEqual(scheduled.status, "scheduled")
-        self.assertEqual(scheduled.edited_content, "Newsletter body")
+@pytest.fixture
+def payload(email_output):
+    return {
+        "output": str(email_output.id),
+        "recipients": ["reader@example.com"],
+        "subject": "Weekly update",
+        "scheduled_for": in_hours(1),
+    }
 
-    def test_create_rejects_non_email_format_output(self):
-        payload = self._create_payload(output=str(self.tweet_output.id))
-        response = self.client.post(self.list_create_url, payload)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_rejects_past_scheduled_for(self):
-        past = timezone.now() - timezone.timedelta(hours=1)
-        payload = self._create_payload(scheduled_for=past.isoformat())
-        response = self.client.post(self.list_create_url, payload)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_rejects_other_users_output(self):
-        other_job = Job.objects.create(
-            user=self.other_user, content="x", model="openai/gpt-4o", status="complete"
-        )
-        other_output = Output.objects.create(
-            job=other_job, format="email", text="Other body"
-        )
-        payload = self._create_payload(output=str(other_output.id))
-        response = self.client.post(self.list_create_url, payload)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_list_scopes_to_request_user(self):
-        ScheduledEmail.objects.create(
-            output=self.email_output,
-            user=self.user,
+@pytest.fixture
+def make_scheduled(user, email_output):
+    def make(owner=None, **overrides):
+        fields = dict(
+            output=email_output,
+            user=owner or user,
             recipients=["a@example.com"],
             subject="mine",
             edited_content="body",
-            status="scheduled",
-            scheduled_for=self.future_time,
+            status=Status.SCHEDULED,
+            scheduled_for=timezone.now() + timedelta(hours=1),
         )
-        other_job = Job.objects.create(
-            user=self.other_user, content="x", model="openai/gpt-4o", status="complete"
-        )
-        other_output = Output.objects.create(
-            job=other_job, format="email", text="body"
-        )
-        ScheduledEmail.objects.create(
-            output=other_output,
-            user=self.other_user,
-            recipients=["b@example.com"],
-            subject="theirs",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=self.future_time,
-        )
+        fields.update(overrides)
+        return ScheduledEmail.objects.create(**fields)
 
-        response = self.client.get(self.list_create_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["subject"], "mine")
+    return make
 
-    def test_cancel_sets_status_cancelled(self):
-        scheduled = ScheduledEmail.objects.create(
-            output=self.email_output,
-            user=self.user,
-            recipients=["a@example.com"],
-            subject="mine",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=self.future_time,
-        )
-        url = reverse("scheduled-email-cancel", kwargs={"pk": scheduled.id})
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class TestSchedule:
+    def test_creates_a_scheduled_email_defaulting_content_to_the_output_text(
+        self, api, user, payload
+    ):
+        response = api.post(LIST_URL, payload, format="json")
+
+        assert response.status_code == 201
+        scheduled = ScheduledEmail.objects.get()
+        assert (scheduled.status, scheduled.user) == (Status.SCHEDULED, user)
+        assert scheduled.edited_content == "Newsletter body"
+
+    def test_explicit_content_overrides_the_output_text(self, api, payload):
+        api.post(LIST_URL, {**payload, "edited_content": "my edit"}, format="json")
+
+        assert ScheduledEmail.objects.get().edited_content == "my edit"
+
+    def test_rejects_non_email_outputs(self, api, payload, make_output):
+        payload["output"] = str(make_output(format="tweet_thread").id)
+
+        assert api.post(LIST_URL, payload, format="json").status_code == 400
+        assert not ScheduledEmail.objects.exists()
+
+    def test_rejects_other_users_outputs(self, api, payload, make_job, make_output, other_user):
+        payload["output"] = str(make_output(job=make_job(owner=other_user), format="email").id)
+
+        assert api.post(LIST_URL, payload, format="json").status_code == 400
+        assert not ScheduledEmail.objects.exists()
+
+    @pytest.mark.parametrize(
+        "overrides",
+        [
+            {"scheduled_for": in_hours(-1)},
+            {"scheduled_for": in_hours(24 * 91)},
+            {"recipients": []},
+            {"recipients": ["not-an-email"]},
+            {"recipients": [f"r{i}@example.com" for i in range(26)]},
+        ],
+    )
+    def test_rejects_invalid_time_or_recipients(self, api, payload, overrides):
+        assert api.post(LIST_URL, {**payload, **overrides}, format="json").status_code == 400
+        assert not ScheduledEmail.objects.exists()
+
+    def test_requires_authentication(self, client, payload):
+        assert client.post(LIST_URL, payload, content_type="application/json").status_code == 401
+
+
+class TestList:
+    def test_lists_only_own_emails_and_filters_by_status(self, api, make_scheduled, other_user):
+        mine = make_scheduled()
+        make_scheduled(status=Status.CANCELLED)
+        make_scheduled(owner=other_user)
+
+        assert api.get(LIST_URL).data["count"] == 2
+        only_scheduled = api.get(LIST_URL, {"status": "scheduled"}).data["results"]
+        assert [e["id"] for e in only_scheduled] == [str(mine.id)]
+
+
+class TestCancel:
+    def test_cancels_a_scheduled_email(self, api, make_scheduled):
+        scheduled = make_scheduled()
+
+        response = api.post(reverse("scheduled-email-cancel", args=[scheduled.id]))
+
+        assert response.status_code == 200
         scheduled.refresh_from_db()
-        self.assertEqual(scheduled.status, "cancelled")
+        assert scheduled.status == Status.CANCELLED
 
-    def test_cancel_already_sent_returns_400(self):
-        scheduled = ScheduledEmail.objects.create(
-            output=self.email_output,
-            user=self.user,
-            recipients=["a@example.com"],
-            subject="mine",
-            edited_content="body",
-            status="sent",
-            scheduled_for=self.future_time,
-            sent_at=timezone.now(),
-        )
-        url = reverse("scheduled-email-cancel", kwargs={"pk": scheduled.id})
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    @pytest.mark.parametrize("status", [Status.SENT, Status.FAILED, Status.CANCELLED])
+    def test_cannot_cancel_a_finished_email(self, api, make_scheduled, status):
+        scheduled = make_scheduled(status=status)
 
-    def test_cancel_other_users_scheduled_email_returns_404(self):
-        other_job = Job.objects.create(
-            user=self.other_user, content="x", model="openai/gpt-4o", status="complete"
-        )
-        other_output = Output.objects.create(
-            job=other_job, format="email", text="body"
-        )
-        scheduled = ScheduledEmail.objects.create(
-            output=other_output,
-            user=self.other_user,
-            recipients=["b@example.com"],
-            subject="theirs",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=self.future_time,
-        )
-        url = reverse("scheduled-email-cancel", kwargs={"pk": scheduled.id})
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = api.post(reverse("scheduled-email-cancel", args=[scheduled.id]))
 
-    def test_update_content_before_send(self):
-        scheduled = ScheduledEmail.objects.create(
-            output=self.email_output,
-            user=self.user,
-            recipients=["a@example.com"],
-            subject="mine",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=self.future_time,
-        )
-        url = reverse("scheduled-email-update", kwargs={"pk": scheduled.id})
-        response = self.client.patch(url, {"edited_content": "revised body"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == 400
         scheduled.refresh_from_db()
-        self.assertEqual(scheduled.edited_content, "revised body")
+        assert scheduled.status == status
 
-    def test_update_after_sent_rejected(self):
-        scheduled = ScheduledEmail.objects.create(
-            output=self.email_output,
-            user=self.user,
-            recipients=["a@example.com"],
-            subject="mine",
-            edited_content="body",
-            status="sent",
-            scheduled_for=self.future_time,
-            sent_at=timezone.now(),
-        )
-        url = reverse("scheduled-email-update", kwargs={"pk": scheduled.id})
-        response = self.client.patch(url, {"edited_content": "revised body"})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_other_users_email_is_not_found(self, api, make_scheduled, other_user):
+        scheduled = make_scheduled(owner=other_user)
+
+        response = api.post(reverse("scheduled-email-cancel", args=[scheduled.id]))
+
+        assert response.status_code == 404
+        scheduled.refresh_from_db()
+        assert scheduled.status == Status.SCHEDULED
+
+
+class TestUpdate:
+    def url(self, scheduled):
+        return reverse("scheduled-email-update", args=[scheduled.id])
+
+    def test_edits_content_before_it_is_sent(self, api, make_scheduled):
+        scheduled = make_scheduled()
+
+        response = api.patch(self.url(scheduled), {"edited_content": "revised"})
+
+        assert response.status_code == 200
+        scheduled.refresh_from_db()
+        assert scheduled.edited_content == "revised"
+
+    @pytest.mark.parametrize("status", [Status.SENT, Status.FAILED, Status.CANCELLED])
+    def test_finished_emails_cannot_be_edited(self, api, make_scheduled, status):
+        scheduled = make_scheduled(status=status)
+
+        response = api.patch(self.url(scheduled), {"edited_content": "revised"})
+
+        assert response.status_code == 400
+        scheduled.refresh_from_db()
+        assert scheduled.edited_content == "body"
+
+    def test_rescheduling_to_the_past_is_rejected(self, api, make_scheduled):
+        scheduled = make_scheduled()
+
+        response = api.patch(self.url(scheduled), {"scheduled_for": in_hours(-1)})
+
+        assert response.status_code == 400
+
+    def test_other_users_email_is_not_found(self, api, make_scheduled, other_user):
+        scheduled = make_scheduled(owner=other_user)
+
+        assert api.patch(self.url(scheduled), {"subject": "hijack"}).status_code == 404

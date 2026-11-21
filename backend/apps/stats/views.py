@@ -1,36 +1,19 @@
-"""
-apps/stats/views.py
-
-Two read-only endpoints. No models in this app.
-Output now lives in apps.stats.models per your Option B decision.
-Job stays in apps.jobs.models.
-"""
-
-import requests
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncDate
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.jobs.models import Job
+from apps.jobs.models import Job, Output
 from apps.scheduling.models import ScheduledEmail
-from .models import Output
 
 
 class ModelStatsView(APIView):
-    """
-    GET /api/v1/stats/models/
-    Returns avg quality score, avg latency, avg tokens/sec, avg user rating,
-    and total generations, grouped by model and format.
-    Query is exact per PRD 14.2.
-    """
-
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         stats_data = (
-            Output.objects.filter(job__user=request.user)
+            Output.objects.for_user(request.user)
             .values("job__model", "format")
             .annotate(
                 avg_latency_ms=Avg("latency_ms"),
@@ -41,7 +24,6 @@ class ModelStatsView(APIView):
             )
             .order_by("job__model", "format")
         )
-        # Return the result in list comprehension with a dictionary inside it for all the items.
         results = [
             {
                 "model": row["job__model"],
@@ -62,25 +44,19 @@ class ModelStatsView(APIView):
 
 
 class SummaryStatsView(APIView):
-    """
-    GET /api/v1/stats/summary/
-    Returns { total_jobs, total_outputs, best_model_overall, avg_quality_score }
-    for the user's profile card.
-    """
-
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        total_jobs = Job.objects.filter(user=request.user).count()
-        total_outputs = Output.objects.filter(job__user=request.user).count()
+        total_jobs = Job.objects.for_user(request.user).count()
+        outputs = Output.objects.for_user(request.user)
+        total_outputs = outputs.count()
 
-        overall_avg = Output.objects.filter(job__user=request.user).aggregate(
-            avg_quality_score=Avg("quality_score")
-        )["avg_quality_score"]
+        overall_avg = outputs.aggregate(avg_quality_score=Avg("quality_score"))[
+            "avg_quality_score"
+        ]
 
         best_model_row = (
-            Output.objects.filter(job__user=request.user)
-            .values("job__model")
+            outputs.values("job__model")
             .annotate(avg_quality_score=Avg("quality_score"))
             .order_by("-avg_quality_score")
             .first()
@@ -122,7 +98,7 @@ class SchedulingStatsView(APIView):
             .values("day")
             .annotate(
                 scheduled_count=Count("id"),
-                sent_count=Count("id", filter=Q(status="sent")),
+                sent_count=Count("id", filter=Q(status=ScheduledEmail.Status.SENT)),
             )
             .order_by("day")
         )
@@ -131,7 +107,7 @@ class SchedulingStatsView(APIView):
             {
                 "status_counts": {
                     key: status_counts.get(key, 0)
-                    for key, _ in ScheduledEmail.STATUS_CHOICES
+                    for key, _ in ScheduledEmail.Status.choices
                 },
                 "activity": [
                     {

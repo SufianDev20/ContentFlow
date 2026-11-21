@@ -1,7 +1,4 @@
-"""
-Scheduled email dispatch. Called by apps/scheduling/scheduler.py's
-periodic APScheduler job, every 60 seconds.
-"""
+"""Scheduled email dispatch, run every 60 seconds by scheduler.py."""
 
 import logging
 
@@ -20,7 +17,7 @@ MAX_ATTEMPTS = 3
 def poll_due_scheduled_emails():
     due_ids = list(
         ScheduledEmail.objects.filter(
-            status="scheduled", scheduled_for__lte=timezone.now()
+            status=ScheduledEmail.Status.SCHEDULED, scheduled_for__lte=timezone.now()
         ).values_list("id", flat=True)
     )
     for scheduled_email_id in due_ids:
@@ -33,8 +30,11 @@ def poll_due_scheduled_emails():
 
 
 def send_scheduled_email(scheduled_email_id):
-    should_notify = False
-
+    """
+    Send one due email. The row is locked and its status re-checked so two
+    scheduler processes can't both send it. A failed attempt is retried on
+    the next poll until MAX_ATTEMPTS, then the email is marked failed.
+    """
     with transaction.atomic():
         try:
             scheduled_email = ScheduledEmail.objects.select_for_update().get(
@@ -43,32 +43,28 @@ def send_scheduled_email(scheduled_email_id):
         except ScheduledEmail.DoesNotExist:
             return
 
-        if scheduled_email.status != "scheduled":
+        if scheduled_email.status != ScheduledEmail.Status.SCHEDULED:
             return
 
         try:
-            message = EmailMessage(
+            EmailMessage(
                 subject=scheduled_email.subject,
                 body=scheduled_email.edited_content,
                 to=scheduled_email.recipients,
-            )
-            message.send(fail_silently=False)
+            ).send(fail_silently=False)
         except Exception as exc:
             scheduled_email.attempt_count += 1
             if scheduled_email.attempt_count < MAX_ATTEMPTS:
                 scheduled_email.save(update_fields=["attempt_count", "updated_at"])
                 return
-            scheduled_email.status = "failed"
+            scheduled_email.status = ScheduledEmail.Status.FAILED
             scheduled_email.error_message = str(exc)
             scheduled_email.save(
                 update_fields=["status", "error_message", "attempt_count", "updated_at"]
             )
-            should_notify = True
         else:
-            scheduled_email.status = "sent"
+            scheduled_email.status = ScheduledEmail.Status.SENT
             scheduled_email.sent_at = timezone.now()
             scheduled_email.save(update_fields=["status", "sent_at", "updated_at"])
-            should_notify = True
 
-    if should_notify:
-        send_confirmation_email(scheduled_email)
+    send_confirmation_email(scheduled_email)

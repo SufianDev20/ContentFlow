@@ -1,12 +1,4 @@
-"""
-Request correlation for ContentFlow AI.
-
-Responsibility:
-    Generate (or adopt) a per-request ID, expose it on the request object,
-    echo it back as a response header, and make it available to every log
-    line emitted during the request via a ContextVar + logging.Filter pair
-    — without threading it through every function signature.
-"""
+"""Per-request IDs: adopted from the client or generated, echoed as X-Request-Id, and attached to every log record."""
 
 import logging
 import re

@@ -1,40 +1,34 @@
-"""
-Serializers for scheduled email sending.
-
-Design decisions:
-    - ScheduledEmailCreateSerializer validates `output` belongs to the
-      requesting user and is an `email`-format output, before any row
-      is created — mirrors JobCreateSerializer's validate() pattern.
-    - `recipients` is a list of EmailField-validated addresses, not a
-      single CharField, so malformed addresses are rejected at the API
-      boundary rather than surfacing later as an SMTP failure.
-    - ScheduledEmailUpdateSerializer only allows edits while status is
-      draft/scheduled — rejects changes to sent/failed/cancelled rows.
-"""
+from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import serializers
+
+from apps.jobs.formats import EMAIL
 
 from .models import ScheduledEmail
 
 MAX_RECIPIENTS = 25
 MAX_SCHEDULE_HORIZON_DAYS = 90
-EDITABLE_STATUSES = {"draft", "scheduled"}
 
 
 def validate_future_datetime(value):
     now = timezone.now()
     if value <= now:
         raise serializers.ValidationError("scheduled_for must be in the future.")
-    if value > now + timezone.timedelta(days=MAX_SCHEDULE_HORIZON_DAYS):
+    if value > now + timedelta(days=MAX_SCHEDULE_HORIZON_DAYS):
         raise serializers.ValidationError(
             f"scheduled_for cannot be more than {MAX_SCHEDULE_HORIZON_DAYS} days out."
         )
     return value
 
 
+def recipients_field(**kwargs):
+    return serializers.ListField(
+        child=serializers.EmailField(), min_length=1, max_length=MAX_RECIPIENTS, **kwargs
+    )
+
+
 class ScheduledEmailSerializer(serializers.ModelSerializer):
-    """Full read representation."""
 
     class Meta:
         model = ScheduledEmail
@@ -56,9 +50,7 @@ class ScheduledEmailSerializer(serializers.ModelSerializer):
 
 
 class ScheduledEmailCreateSerializer(serializers.ModelSerializer):
-    recipients = serializers.ListField(
-        child=serializers.EmailField(), min_length=1, max_length=MAX_RECIPIENTS
-    )
+    recipients = recipients_field()
     edited_content = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -69,7 +61,7 @@ class ScheduledEmailCreateSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         if output.job.user_id != request.user.id:
             raise serializers.ValidationError("Output not found.")
-        if output.format != "email":
+        if output.format != EMAIL:
             raise serializers.ValidationError(
                 "Only email-format outputs can be scheduled."
             )
@@ -83,24 +75,19 @@ class ScheduledEmailCreateSerializer(serializers.ModelSerializer):
         if not validated_data.get("edited_content"):
             validated_data["edited_content"] = output.text
         validated_data["user"] = request.user
-        validated_data["status"] = "scheduled"
+        validated_data["status"] = ScheduledEmail.Status.SCHEDULED
         return super().create(validated_data)
 
 
 class ScheduledEmailUpdateSerializer(serializers.ModelSerializer):
-    recipients = serializers.ListField(
-        child=serializers.EmailField(),
-        min_length=1,
-        max_length=MAX_RECIPIENTS,
-        required=False,
-    )
+    recipients = recipients_field(required=False)
 
     class Meta:
         model = ScheduledEmail
         fields = ["recipients", "subject", "edited_content", "scheduled_for"]
 
     def validate(self, attrs):
-        if self.instance.status not in EDITABLE_STATUSES:
+        if self.instance.status not in ScheduledEmail.EDITABLE_STATUSES:
             raise serializers.ValidationError(
                 f"Cannot edit a {self.instance.status} scheduled email."
             )

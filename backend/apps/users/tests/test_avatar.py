@@ -1,9 +1,4 @@
-"""
-apps/users/tests/test_avatar.py
-
-Avatar upload/delete must degrade gracefully when Cloudinary rejects a request.
-Cloudinary calls are patched; no network access.
-"""
+"""Avatar upload/delete must degrade gracefully when Cloudinary rejects a request."""
 
 import io
 from unittest import mock
@@ -11,7 +6,6 @@ from unittest import mock
 import cloudinary.exceptions
 from cloudinary import CloudinaryResource
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
 from django.urls import reverse
 from PIL import Image
 from rest_framework import status
@@ -36,7 +30,6 @@ def _resource(public_id):
     )
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
 class AvatarCloudinaryErrorTests(APITestCase):
     def setUp(self):
         self.url = reverse("auth-profile-avatar")

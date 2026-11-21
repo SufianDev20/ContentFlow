@@ -1,8 +1,4 @@
-// settings.js
-// Handles the Account Settings modal on dashboard.html.
-// Depends on API_BASE_URL, getCookie, csrfHeaders, apiFetch, handleAuthError from common.js
-// FIXED: removed all localStorage.getItem('access_token') reads. Auth now
-// rides on the httpOnly cookie via credentials: 'include'.
+// Account Settings modal on dashboard.html. Uses apiFetch and populateModelSelect from common.js.
 
 document.addEventListener('DOMContentLoaded', () => {
     const modalOverlay = document.getElementById('settings-modal-overlay');
@@ -62,38 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // FIXED: was authHeaders() (undefined). Uses credentials: 'include'
-    // so the httpOnly access-token cookie attaches automatically.
     async function populateModelOptions(selectedValue) {
-        try {
-            let response = await fetch(`${API_BASE_URL}/models/available/`, {
-                credentials: 'include'
-            });
-            if (response.status === 401) {
-                const refreshed = await handleAuthError();
-                if (!refreshed) return;
-                response = await fetch(`${API_BASE_URL}/models/available/`, {
-                    credentials: 'include'
-                });
-            }
-            if (!response.ok) return;
-
-            const data = await response.json();
-            const models = data.models || [];
-
-            defaultModelSelect.innerHTML = '<option value="">No preference</option>';
-            models.forEach((model) => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                defaultModelSelect.appendChild(option);
-            });
-            if (selectedValue) {
-                defaultModelSelect.value = selectedValue;
-            }
-        } catch (err) {
-            // Leave default option on failure
-        }
+        defaultModelSelect.innerHTML = '<option value="">No preference</option>';
+        await populateModelSelect(defaultModelSelect);
+        defaultModelSelect.value = selectedValue;
     }
 
     async function loadSettings() {
@@ -131,9 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- Avatar upload with instant local preview ----
-    // FIXED: was reading localStorage 'access_token' and sending
-    // Authorization: Bearer null. Now sends the CSRF header only and
-    // relies on the httpOnly cookie via credentials: 'include'.
     avatarInput.addEventListener('change', async () => {
         clearSettingsError();
         const file = avatarInput.files[0];
@@ -145,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 1. Instant client-side preview
         const reader = new FileReader();
         reader.onload = (e) => {
             avatarImg.src = e.target.result;
@@ -154,36 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         reader.readAsDataURL(file);
 
-        // 2. Upload to server
         const formData = new FormData();
         formData.append('avatar', file);
 
-        const headers = csrfHeaders();
-
         try {
-            let response = await fetch(`${API_BASE_URL}/auth/profile/avatar/`, {
-                method: 'POST',
-                credentials: 'include',
-                headers,
-                body: formData
-            });
+            const data = await apiFetch('/auth/profile/avatar/', { method: 'POST', body: formData });
+            if (!data) return;
 
-            if (response.status === 401) {
-                const refreshed = await handleAuthError();
-                if (!refreshed) return;
-                response = await fetch(`${API_BASE_URL}/auth/profile/avatar/`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers,
-                    body: formData
-                });
-            }
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
+            if (data.error) {
                 updateAvatarDisplay(currentUser);
-                showSettingsError(data.avatar?.[0] || data.detail || 'Could not upload image.');
+                showSettingsError(data.error);
                 return;
             }
 
@@ -265,9 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === deleteOverlay) closeDeleteModal();
     });
 
-    // FIXED: was reading localStorage 'access_token' and sending
-    // Authorization: Bearer '' when absent. Now uses apiFetch, which
-    // sends the cookie and handles refresh/CSRF automatically.
     deleteConfirmBtn.addEventListener('click', async () => {
         const password = deletePasswordInput.value;
         if (!password) {

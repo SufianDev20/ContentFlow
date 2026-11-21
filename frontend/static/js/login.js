@@ -1,9 +1,3 @@
-function showError(message) {
-    const el = document.getElementById('form-error');
-    el.textContent = message;
-    el.classList.add('visible');
-}
-
 function setLoading(isLoading) {
     const btn = document.getElementById('submit-btn');
     btn.disabled = isLoading;
@@ -28,7 +22,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login/`, {
             method: 'POST',
-            credentials: 'include',  // NEW: lets the server set the httpOnly cookies
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
@@ -37,14 +31,11 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
         });
 
         if (!response.ok) {
-            showError('Invalid email or password');
+            showFormError('Invalid email or password');
             setLoading(false);
             return;
         }
 
-        // CHANGED: the response body no longer contains access/refresh
-        // tokens, they are already set as cookies by the server. The body
-        // now carries the non-sensitive fields login.js actually needs.
         const user = await response.json();
 
         window.location.href = user.default_model
@@ -52,7 +43,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
             : `${DASHBOARD_URL}?setup=default-model`;
     }
     catch (err) {
-        showError('Could not reach the server. Try Again.');
+        showFormError('Could not reach the server. Try Again.');
         setLoading(false);
     }
 });

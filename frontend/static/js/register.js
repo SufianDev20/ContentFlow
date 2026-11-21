@@ -1,15 +1,3 @@
-function showError(message) {
-    const element = document.getElementById('form-error');
-    element.textContent = message;
-    element.classList.add('visible');
-}
-
-function clearError() {
-    const element = document.getElementById('form-error');
-    element.textContent = '';
-    element.classList.remove('visible');
-}
-
 function setLoading(isLoading) {
     const button = document.getElementById('submit-btn');
     if (!button) return;
@@ -21,18 +9,18 @@ function setLoading(isLoading) {
 
 document.getElementById('register-form').addEventListener('submit', async (event) => {
     event.preventDefault();
-    clearError();
+    clearFormError();
 
     const full_name = document.getElementById('full_name').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
     if (!full_name) {
-        showError('Enter your full name.');
+        showFormError('Enter your full name.');
         return;
     }
     if (!email.includes('@')) {
-        showError('Enter a valid email address.');
+        showFormError('Enter a valid email address.');
         return;
     }
 
@@ -53,14 +41,14 @@ document.getElementById('register-form').addEventListener('submit', async (event
 
         if (!response.ok) {
             const message = data.detail || data.email?.[0] || data.password?.[0] || data.full_name?.[0] || 'Registration failed. Check your details and try again.';
-            showError(message);
+            showFormError(message);
             setLoading(false);
             return;
         }
 
         window.location.href = `${LOGIN_URL}?registered=true`;
     } catch (err) {
-        showError('Could not reach the server. Try again.');
+        showFormError('Could not reach the server. Try again.');
         setLoading(false);
     }
 });

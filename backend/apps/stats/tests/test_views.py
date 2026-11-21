@@ -1,150 +1,96 @@
-"""
-apps/stats/tests/test_views.py
+from datetime import timedelta
 
-Covers GET /api/v1/stats/models/ and GET /api/v1/stats/summary/ per PRD 7.5.
-Output lives in apps.stats.models. Job lives in apps.jobs.models.
-"""
-
+import pytest
 from django.urls import reverse
-from rest_framework.test import APITestCase
-from rest_framework import status
-from apps.users.models import User
-from apps.jobs.models import Job
-from apps.stats.models import Output
+from django.utils import timezone
+
+from apps.scheduling.models import ScheduledEmail
 
 
-class ModelStatsViewTests(APITestCase):
-    def setUp(self):
-        self.url = reverse("stats-models")
-        self.user = User.objects.create_user(
-            email="jane@example.com", password="pass123", full_name="Jane Doe"
+@pytest.mark.parametrize("name", ["stats-models", "stats-summary", "stats-scheduling"])
+def test_stats_require_authentication(client, name):
+    assert client.get(reverse(name)).status_code == 401
+
+
+class TestModelStats:
+    url = reverse("stats-models")
+
+    def test_empty_without_outputs(self, api):
+        assert api.get(self.url).data == []
+
+    def test_aggregates_per_model_and_format_for_own_outputs_only(
+        self, api, make_job, make_output, other_user
+    ):
+        fast = make_job(model="model-a")
+        make_output(job=fast, format="email", quality_score=60, latency_ms=100, user_rating=4)
+        make_output(job=fast, format="email", quality_score=80, latency_ms=300, user_rating=5)
+        make_output(job=fast, format="tldr", quality_score=90)
+        make_output(job=make_job(model="model-b"), format="email", quality_score=10)
+        make_output(job=make_job(owner=other_user, model="model-a"), format="email", quality_score=0)
+
+        rows = {(r["model"], r["format"]): r for r in api.get(self.url).data}
+
+        assert set(rows) == {("model-a", "email"), ("model-a", "tldr"), ("model-b", "email")}
+        email = rows[("model-a", "email")]
+        assert email["total_generations"] == 2
+        assert email["avg_quality_score"] == 70
+        assert email["avg_latency_ms"] == 200
+        assert email["avg_user_rating"] == 4.5
+        assert rows[("model-a", "tldr")]["avg_user_rating"] is None
+
+
+class TestSummary:
+    url = reverse("stats-summary")
+
+    def test_zero_values_without_data(self, api):
+        assert api.get(self.url).data == {
+            "total_jobs": 0,
+            "total_outputs": 0,
+            "best_model_overall": None,
+            "avg_quality_score": 0,
+        }
+
+    def test_counts_own_data_and_picks_the_best_model_by_average_quality(
+        self, api, make_job, make_output, other_user
+    ):
+        good, poor = make_job(model="good"), make_job(model="poor")
+        make_output(job=good, quality_score=90)
+        make_output(job=good, quality_score=70)
+        make_output(job=poor, quality_score=40)
+        make_job(model="idle")
+        make_output(job=make_job(owner=other_user, model="theirs"), quality_score=100)
+
+        data = api.get(self.url).data
+
+        assert data["total_jobs"] == 3
+        assert data["total_outputs"] == 3
+        assert data["best_model_overall"] == "good"
+        assert data["avg_quality_score"] == 66.7
+
+
+class TestSchedulingStats:
+    url = reverse("stats-scheduling")
+
+    def schedule(self, user, output, status, days_ago=0):
+        row = ScheduledEmail.objects.create(
+            output=output, user=user, recipients=["a@example.com"], subject="s",
+            edited_content="b", status=status,
         )
-        self.other_user = User.objects.create_user(
-            email="bob@example.com", password="pass123", full_name="Bob Smith"
-        )
-        self.client.force_authenticate(user=self.user)
+        ScheduledEmail.objects.filter(pk=row.pk).update(created_at=timezone.now() - timedelta(days=days_ago))
 
-    def test_without_authentication_returns_401(self):
-        self.client.force_authenticate(user=None)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_counts_every_status_and_daily_activity_for_own_emails_only(
+        self, api, user, other_user, make_output, make_job
+    ):
+        output = make_output()
+        Status = ScheduledEmail.Status
+        self.schedule(user, output, Status.SENT)
+        self.schedule(user, output, Status.SENT)
+        self.schedule(user, output, Status.FAILED, days_ago=1)
+        self.schedule(other_user, make_output(job=make_job(owner=other_user)), Status.SENT)
 
-    def test_with_no_outputs_returns_empty_list(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        data = api.get(self.url).data
 
-    def test_groups_by_model_and_format(self):
-        job = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        Output.objects.create(
-            job=job, format="tweet_thread", text="x", quality_score=80, latency_ms=1000
-        )
-        Output.objects.create(
-            job=job, format="tweet_thread", text="y", quality_score=90, latency_ms=2000
-        )
-        Output.objects.create(
-            job=job, format="linkedin", text="z", quality_score=70, latency_ms=1500
-        )
-
-        response = self.client.get(self.url)
-        self.assertEqual(len(response.data), 2)
-
-        tweet_row = next(r for r in response.data if r["format"] == "tweet_thread")
-        self.assertEqual(tweet_row["total_generations"], 2)
-        self.assertEqual(tweet_row["avg_quality_score"], 85.0)
-
-    def test_excludes_other_users_outputs(self):
-        other_job = Job.objects.create(
-            user=self.other_user, content="a", model="claude/opus", status="complete"
-        )
-        Output.objects.create(job=other_job, format="email", text="x", quality_score=90)
-        response = self.client.get(self.url)
-        self.assertEqual(response.data, [])
-
-    def test_avg_user_rating_is_null_when_no_ratings_given(self):
-        job = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        Output.objects.create(job=job, format="email", text="x", quality_score=80)
-        response = self.client.get(self.url)
-        self.assertIsNone(response.data[0]["avg_user_rating"])
-
-    def test_avg_user_rating_computed_when_ratings_present(self):
-        job = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        Output.objects.create(
-            job=job, format="email", text="x", quality_score=80, user_rating=4
-        )
-        Output.objects.create(
-            job=job, format="email", text="y", quality_score=80, user_rating=2
-        )
-        response = self.client.get(self.url)
-        self.assertEqual(response.data[0]["avg_user_rating"], 3.0)
-
-
-class SummaryStatsViewTests(APITestCase):
-    def setUp(self):
-        self.url = reverse("stats-summary")
-        self.user = User.objects.create_user(
-            email="jane@example.com", password="pass123", full_name="Jane Doe"
-        )
-        self.other_user = User.objects.create_user(
-            email="bob@example.com", password="pass123", full_name="Bob Smith"
-        )
-        self.client.force_authenticate(user=self.user)
-
-    def test_without_authentication_returns_401(self):
-        self.client.force_authenticate(user=None)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_with_no_jobs_returns_zero_values(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["total_jobs"], 0)
-        self.assertEqual(response.data["total_outputs"], 0)
-        self.assertIsNone(response.data["best_model_overall"])
-        self.assertEqual(response.data["avg_quality_score"], 0)
-
-    def test_counts_only_own_jobs_and_outputs(self):
-        job = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        Output.objects.create(job=job, format="email", text="x", quality_score=80)
-
-        other_job = Job.objects.create(
-            user=self.other_user, content="b", model="claude/opus", status="complete"
-        )
-        Output.objects.create(job=other_job, format="email", text="y", quality_score=95)
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.data["total_jobs"], 1)
-        self.assertEqual(response.data["total_outputs"], 1)
-
-    def test_best_model_overall_picks_highest_avg_quality(self):
-        job_gpt = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        job_claude = Job.objects.create(
-            user=self.user, content="b", model="claude/opus", status="complete"
-        )
-        Output.objects.create(job=job_gpt, format="email", text="x", quality_score=70)
-        Output.objects.create(
-            job=job_claude, format="email", text="y", quality_score=95
-        )
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.data["best_model_overall"], "claude/opus")
-
-    def test_avg_quality_score_is_overall_average_across_models(self):
-        job = Job.objects.create(
-            user=self.user, content="a", model="openai/gpt-4o", status="complete"
-        )
-        Output.objects.create(job=job, format="email", text="x", quality_score=80)
-        Output.objects.create(job=job, format="linkedin", text="y", quality_score=90)
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.data["avg_quality_score"], 85.0)
+        assert data["status_counts"] == {
+            "draft": 0, "scheduled": 0, "sent": 2, "failed": 1, "cancelled": 0,
+        }
+        assert [(d["scheduled_count"], d["sent_count"]) for d in data["activity"]] == [(1, 0), (2, 2)]

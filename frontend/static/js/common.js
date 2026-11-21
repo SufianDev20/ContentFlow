@@ -1,4 +1,3 @@
-// This folder contains all the common functions in all of the javascript
 const API_BASE_URL = '/api/v1';
 
 function getCookie(name) {
@@ -6,15 +5,11 @@ function getCookie(name) {
     return match ? decodeURIComponent(match[2]) : null;
 }
 
-// CHANGED: no more reading access_token from localStorage. The JWT cookie
-// is httpOnly, so JS cannot see it and doesn't need to. Only the CSRF
-// header is set manually now.
+// The JWT lives in httpOnly cookies; JS only supplies the CSRF header.
 function csrfHeaders() {
     return { 'X-CSRFToken': getCookie('csrftoken') };
 }
 
-// CHANGED: refresh no longer takes a token argument or touches localStorage.
-// The refresh cookie is sent automatically because of credentials: 'include'.
 async function refreshAccessToken() {
     try {
         const response = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
@@ -37,8 +32,6 @@ async function handleAuthError() {
     if (refreshSuccess) {
         return true;
     } else {
-        // CHANGED: nothing to clear from localStorage anymore. Ask the
-        // server to drop the cookies, then redirect.
         await fetch(`${API_BASE_URL}/auth/logout/`, {
             method: 'POST',
             credentials: 'include',
@@ -66,37 +59,23 @@ function flattenFieldErrors(data, prefix = '') {
     return parts.filter(Boolean).join(' · ');
 }
 
-// Export a common API fetch function that can be used by other files
+function sendRequest(path, options) {
+    const headers = { ...csrfHeaders(), ...(options.headers || {}) };
+    if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+    return fetch(`${API_BASE_URL}${path}`, { ...options, credentials: 'include', headers });
+}
+
+// Resolves to the parsed JSON body, `{ error }` on failure, or null when the
+// session is gone (after redirecting to login). Retries once after a token refresh.
 async function apiFetch(path, options = {}) {
-    let response = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        credentials: 'include',  // NEW: sends the httpOnly JWT cookie automatically
-        headers: {
-            'Content-Type': 'application/json',
-            ...csrfHeaders(),
-            ...(options.headers || {})
-        }
-    });
+    let response = await sendRequest(path, options);
 
     if (response.status === 401) {
-        const refreshSuccess = await handleAuthError();
-        if (refreshSuccess) {
-            response = await fetch(`${API_BASE_URL}${path}`, {
-                ...options,
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...csrfHeaders(),
-                    ...(options.headers || {})
-                }
-            });
-        } else {
-            return null;
-        }
+        if (!(await handleAuthError())) return null;
+        response = await sendRequest(path, options);
     }
 
     if (response.status === 429) {
-        console.warn('Rate limit hit (429). Throttling request.');
         return { error: 'Too many requests. Please wait a moment.' };
     }
 
@@ -108,72 +87,133 @@ async function apiFetch(path, options = {}) {
     return data;
 }
 
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+}
+
+function formatDate(iso) {
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatDateTime(iso) {
+    return new Date(iso).toLocaleString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+}
+
+const STAR_PATH = 'M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z';
+
+function renderRatingWidget(outputId, currentRating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        const filled = currentRating && i <= currentRating ? 'filled' : '';
+        stars += `<span class="star ${filled}" data-output-id="${outputId}" data-value="${i}" role="button" aria-label="Rate ${i} of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg></span>`;
+    }
+    return `<div class="rating-widget">${stars}</div>`;
+}
+
+function bindCopyButton(card) {
+    const button = card.querySelector('.copy-btn');
+    button.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(button.dataset.text);
+            button.textContent = 'Copied!';
+        } catch (err) {
+            button.textContent = 'Copy failed';
+        }
+        setTimeout(() => { button.textContent = 'Copy'; }, 1500);
+    });
+}
+
+// One output as a card: text, metrics and rating, plus optional extra markup at the bottom.
+function renderOutputCard(output, extrasHtml = '') {
+    const card = document.createElement('div');
+    card.className = 'output-card';
+    card.innerHTML = `
+    <div class="output-card-header">
+      <span class="output-card-format">${escapeHtml(output.format.replace('_', ' '))}</span>
+      <button class="copy-btn" data-text="${escapeHtml(output.text)}">Copy</button>
+    </div>
+    <p class="output-card-body">${escapeHtml(output.text)}</p>
+    <div class="output-metrics-display">
+      <div class="output-metric-item">
+        <span class="output-metric-label">Quality</span>
+        <span class="output-metric-value">${(output.quality_score / 10).toFixed(1)}</span>
+      </div>
+      <div class="output-metric-item">
+        <span class="output-metric-label">Tokens</span>
+        <span class="output-metric-value">${output.tokens_generated}</span>
+      </div>
+      <div class="output-metric-item">
+        <span class="output-metric-label">Latency</span>
+        <span class="output-metric-value">${output.latency_ms}ms</span>
+      </div>
+      <div class="output-metric-item">
+        <span class="output-metric-label">Speed</span>
+        <span class="output-metric-value">${output.tokens_per_second} t/s</span>
+      </div>
+    </div>
+    ${renderRatingWidget(output.id, output.user_rating)}
+    ${extrasHtml}
+  `;
+    bindCopyButton(card);
+    return card;
+}
+
+function showFormError(message) {
+    const el = document.getElementById('form-error');
+    el.textContent = message;
+    el.classList.add('visible');
+}
+
+function clearFormError() {
+    const el = document.getElementById('form-error');
+    el.textContent = '';
+    el.classList.remove('visible');
+}
+
+document.addEventListener('click', async (e) => {
+    const star = e.target.closest('.star');
+    if (!star) return;
+    const rating = parseInt(star.dataset.value, 10);
+
+    const saved = await apiFetch(`/outputs/${star.dataset.outputId}/rate/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ user_rating: rating })
+    });
+    if (!saved || saved.error) return;
+
+    star.closest('.rating-widget').querySelectorAll('.star').forEach((s) => {
+        s.classList.toggle('filled', parseInt(s.dataset.value, 10) <= rating);
+    });
+});
+
+// Fills a <select> with the models the server offers, grouped by provider.
+// Resolves to false if they could not be loaded.
+async function populateModelSelect(select) {
+    const data = await apiFetch('/models/available/');
+    if (!data || data.error) return false;
+
+    const groups = [['OpenRouter', data.openrouter], ['Gemini', data.gemini]];
+    for (const [label, models] of groups) {
+        if (!models?.length) continue;
+        const group = document.createElement('optgroup');
+        group.label = label;
+        for (const model of models) group.appendChild(new Option(model, model));
+        select.appendChild(group);
+    }
+    return true;
+}
+
 async function loadAvailableModels() {
-    const modelSelect = document.getElementById('model-select');
-    if (!modelSelect) return;
-
-    try {
-        let response = await fetch(`${API_BASE_URL}/models/available/`, {
-            credentials: 'include'
-        });
-
-        if (response.status === 401) {
-            const refreshSuccess = await handleAuthError();
-            if (refreshSuccess) {
-                response = await fetch(`${API_BASE_URL}/models/available/`, {
-                    credentials: 'include'
-                });
-            } else {
-                return;
-            }
-        }
-
-        if (!response.ok) {
-            modelSelect.innerHTML = '<option value="" disabled>Could not load models</option>';
-            return;
-        }
-
-        const data = await response.json();
-        const models = data.models || [];
-
-        const openrouterModels = models.filter(m => !m.startsWith('gemini-'));
-        const geminiModels = models.filter(m => m.startsWith('gemini-'));
-
-        modelSelect.innerHTML = '';
-
-        if (openrouterModels.length > 0) {
-            const openrouterGroup = document.createElement('optgroup');
-            openrouterGroup.label = 'OpenRouter';
-            openrouterModels.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                openrouterGroup.appendChild(option);
-            });
-            modelSelect.appendChild(openrouterGroup);
-        }
-
-        if (geminiModels.length > 0) {
-            const geminiGroup = document.createElement('optgroup');
-            geminiGroup.label = 'Gemini';
-            geminiModels.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                geminiGroup.appendChild(option);
-            });
-            modelSelect.appendChild(geminiGroup);
-        }
-
-        if (models.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No models available';
-            option.disabled = true;
-            modelSelect.appendChild(option);
-        }
-    } catch (err) {
-        modelSelect.innerHTML = '<option value="" disabled>Could not load models</option>';
+    const select = document.getElementById('model-select');
+    select.innerHTML = '';
+    if (!(await populateModelSelect(select))) {
+        select.innerHTML = '<option value="" disabled>Could not load models</option>';
+    } else if (!select.children.length) {
+        select.innerHTML = '<option value="" disabled>No models available</option>';
     }
 }
 
@@ -242,6 +282,16 @@ function applyTheme(theme) {
     if (changed) document.dispatchEvent(new CustomEvent('themechange', { detail: themeValue }));
 }
 
+function initLogout() {
+    document.querySelectorAll('a[href="/logout/"]').forEach((link) => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await sendRequest('/auth/logout/', { method: 'POST' }).catch(() => { });
+            window.location.href = '/login/';
+        });
+    });
+}
+
 function initThemeToggle() {
     document.querySelectorAll('.theme-toggle').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -274,38 +324,19 @@ function updateHeaderProfile(displayName = '', imageUrl = '') {
     });
 }
 
-// Single consolidated DOM initialization handler
 document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('model-select')) {
-        loadAvailableModels();
-    }
-
     initSidebarToggle();
     initThemeToggle();
+    initLogout();
     applyTheme(localStorage.getItem('theme_preference') || 'dark');
 
-    // CHANGED: we can no longer check `localStorage.getItem('access_token')`
-    // to know if the user is logged in, since the token is httpOnly and
-    // invisible to JS. window.authenticated is set server-side in
-    // dashboard.html's extra_head block; use that instead, and otherwise
-    // just attempt the request and let the 401 path handle it.
-    if (!window.authenticated) {
-        applyTheme(localStorage.getItem('theme_preference') || 'dark');
-        return;
-    }
+    if (document.getElementById('model-select')) loadAvailableModels();
 
-    try {
-        const response = await apiFetch('/auth/me/');
-        if (response && !response.error) {
-            applyTheme(localStorage.getItem('theme_preference') || response.theme_preference || 'dark');
-            const displayName = response.display_name || response.full_name || 'Profile';
-            const avatarUrl = response.profile?.avatar_url || '';
-            updateHeaderProfile(displayName, avatarUrl);
-        } else {
-            applyTheme(localStorage.getItem('theme_preference') || 'dark');
-        }
-    } catch (err) {
-        console.error('Failed to initialize user session state:', err);
-        applyTheme(localStorage.getItem('theme_preference') || 'dark');
+    // The httpOnly token is invisible to JS, so the page declares auth state itself.
+    if (!window.authenticated) return;
+
+    const me = await apiFetch('/auth/me/');
+    if (me && !me.error) {
+        updateHeaderProfile(me.full_name || 'Profile', me.profile?.avatar_url || '');
     }
 });

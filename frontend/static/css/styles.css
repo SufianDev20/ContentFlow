@@ -103,13 +103,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 h1, h2 { font-family: var(--f-head); font-weight: 300; letter-spacing: -0.022em; line-height: 1.1; }
 .page-title { font-size: var(--title); }
 .page-sub { color: var(--muted); margin-top: 6px; max-width: 60ch; }
-.muted, .cf-text-muted, .text-muted { color: var(--muted); }
+.muted { color: var(--muted); }
 .text-sm { font-size: var(--small); }
-.num, .text-mono { font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: tabular-nums; }
 .text-primary { color: var(--accent-text); }
 .text-success { color: var(--positive); }
-.mt-2 { margin-top: 8px; } .mt-4 { margin-top: 16px; } .mt-6 { margin-top: 24px; }
-.mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; }
+.mt-4 { margin-top: 16px; } .mt-6 { margin-top: 24px; }
+.mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; }
 
 .ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 500; width: max-content; }
@@ -137,7 +137,7 @@ h1, h2 { font-family: var(--f-head); font-weight: 300; letter-spacing: -0.022em;
 /* ---------- Forms ---------- */
 .stack { display: grid; gap: 16px; }
 .field { display: grid; gap: 8px; }
-.field label, .field-label { font-weight: 500; font-size: var(--small); }
+.field label { font-weight: 500; font-size: var(--small); }
 .field small { font-size: var(--small); color: var(--muted); }
 .row { display: flex; gap: 8px; align-items: center; }
 .input {
@@ -239,9 +239,6 @@ legend { padding: 0; font-weight: 500; font-size: var(--small); margin-bottom: 8
 }
 .chips label:has(input:checked) { background: var(--raised); box-shadow: inset 0 0 0 1px var(--ink); }
 .counter { display: flex; justify-content: space-between; gap: 12px; font-size: var(--small); color: var(--muted); }
-.progress { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden; }
-.progress-bar { height: 100%; background: var(--accent); transition: width .4s var(--ease); }
-.progress-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
 .outputs-head { margin-bottom: 16px; }
 .empty-state { color: var(--muted); padding: 28px 4px; }
 .workbench #outputs-container:empty::before {
@@ -260,12 +257,10 @@ legend { padding: 0; font-weight: 500; font-size: var(--small); margin-bottom: 8
 }
 .copy-btn:hover { background: var(--raised); }
 .output-card-body { white-space: pre-wrap; line-height: 1.55; overflow-wrap: anywhere; max-width: 70ch; }
-.output-metrics-display { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border-radius: var(--r); overflow: hidden; }
+.output-metrics-display { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border-radius: var(--r); overflow: hidden; }
 .output-metric-item { background: var(--bg); padding: 12px 14px; display: grid; gap: 2px; }
 .output-metric-label { font-size: var(--small); color: var(--muted); }
 .output-metric-value { font-size: 1.25rem; font-weight: 500; font-variant-numeric: tabular-nums; }
-.output-metrics summary { cursor: pointer; font-size: var(--small); color: var(--muted); }
-.output-metrics-row { margin-top: 8px; font-size: var(--small); color: var(--muted); font-variant-numeric: tabular-nums; }
 .rating-widget { display: flex; gap: 2px; }
 .star { cursor: pointer; display: inline-flex; line-height: 1; color: var(--control); padding: 2px; transition: color .15s, transform .15s var(--ease); user-select: none; }
 .star svg { width: 20px; height: 20px; fill: currentColor; pointer-events: none; }
@@ -275,9 +270,9 @@ legend { padding: 0; font-weight: 500; font-size: var(--small); margin-bottom: 8
 
 /* ---------- Pills ---------- */
 .badge { display: inline-block; font-size: var(--small); font-weight: 500; padding: 3px 10px; border-radius: 999px; background: var(--raised); color: var(--ink); white-space: nowrap; }
-.badge-processing, .badge-status-processing { background: var(--accent); color: var(--accent-ink); }
-.badge-complete, .badge-status-complete { background: var(--positive-bg); color: var(--positive); }
-.badge-failed, .badge-status-failed { background: var(--negative-bg); color: var(--negative); }
+.badge-status-processing { background: var(--accent); color: var(--accent-ink); }
+.badge-status-complete { background: var(--positive-bg); color: var(--positive); }
+.badge-status-failed { background: var(--negative-bg); color: var(--negative); }
 
 /* ---------- Tables ---------- */
 .data-table { width: 100%; border-collapse: collapse; font-size: var(--body); }

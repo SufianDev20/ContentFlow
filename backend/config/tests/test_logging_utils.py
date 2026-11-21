@@ -1,43 +1,42 @@
 import json
 import logging
-from django.test import SimpleTestCase
+
 from config.logging_utils import JsonFormatter
 
 
-class JsonFormatterTests(SimpleTestCase):
-    def _make_record(self, message, **extra):
-        record = logging.LogRecord(
-            "test.logger", logging.INFO, __file__, 1, message, None, None
-        )
-        for key, value in extra.items():
-            setattr(record, key, value)
-        return record
+def render(message, exc_info=None, **extra):
+    record = logging.LogRecord("test.logger", logging.WARNING, __file__, 1, message, None, exc_info)
+    for key, value in extra.items():
+        setattr(record, key, value)
+    return json.loads(JsonFormatter().format(record))
 
-    def test_output_is_valid_json(self):
-        record = self._make_record("plain message", request_id="req-1")
-        output = JsonFormatter().format(record)
-        parsed = json.loads(output)
-        self.assertEqual(parsed["message"], "plain message")
-        self.assertEqual(parsed["request_id"], "req-1")
-        self.assertEqual(parsed["level"], "INFO")
 
-    def test_valid_json_with_quotes_and_newlines_in_message(self):
-        message = 'Provider returned: {"error": "bad \\"nested\\" quote"}\nline two'
-        record = self._make_record(message)
-        output = JsonFormatter().format(record)
-        parsed = json.loads(output)  # raises if not valid JSON
-        self.assertEqual(parsed["message"], message)
+def test_message_with_quotes_and_newlines_stays_valid_json():
+    message = 'Provider returned: {"error": "bad \\"nested\\" quote"}\nline two'
 
-    def test_omits_optional_fields_when_absent(self):
-        record = self._make_record("no extras here")
-        output = JsonFormatter().format(record)
-        parsed = json.loads(output)
-        self.assertNotIn("job_id", parsed)
-        self.assertNotIn("format", parsed)
+    assert render(message)["message"] == message
 
-    def test_includes_job_id_and_format_when_present(self):
-        record = self._make_record("with extras", job_id="abc", format="tldr")
-        output = JsonFormatter().format(record)
-        parsed = json.loads(output)
-        self.assertEqual(parsed["job_id"], "abc")
-        self.assertEqual(parsed["format"], "tldr")
+
+def test_core_and_structured_fields_are_included_when_present():
+    entry = render("hi", request_id="req-1", job_id="abc", format="tldr")
+
+    assert entry["level"] == "WARNING"
+    assert entry["logger"] == "test.logger"
+    assert (entry["request_id"], entry["job_id"], entry["format"]) == ("req-1", "abc", "tldr")
+
+
+def test_structured_fields_are_omitted_when_absent():
+    entry = render("hi")
+
+    assert not {"request_id", "job_id", "format"} & entry.keys()
+
+
+def test_exception_traceback_is_included():
+    try:
+        raise ValueError("boom")
+    except ValueError:
+        import sys
+
+        entry = render("failed", exc_info=sys.exc_info())
+
+    assert "ValueError: boom" in entry["exc_info"]

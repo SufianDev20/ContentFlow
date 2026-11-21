@@ -1,6 +1,5 @@
 // stats.js
 // Populates the Stats page: summary cards, efficiency table, and quality chart.
-// Matches apps.stats.views.SummaryStatsView and ModelStatsView response shapes exactly.
 
 function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -219,7 +218,7 @@ function renderSchedulingActivityTable(activity) {
 }
 
 async function loadSchedulingStats() {
-    const data = await window.apiFetch('/stats/scheduling/');
+    const data = await apiFetch('/stats/scheduling/');
     if (!data || data.error) return;
     renderSendStatusChart(data.status_counts);
     renderSchedulingActivityTable(data.activity);
@@ -227,8 +226,8 @@ async function loadSchedulingStats() {
 
 async function loadStats() {
     const [summary, modelRows] = await Promise.all([
-        window.apiFetch('/stats/summary/'),
-        window.apiFetch('/stats/models/')
+        apiFetch('/stats/summary/'),
+        apiFetch('/stats/models/')
     ]);
 
     if (!summary || summary.error || !modelRows || modelRows.error) {

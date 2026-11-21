@@ -71,7 +71,9 @@ flowchart TB
     subgraph Jobs["apps/jobs/"]
         JOBAPI[Job / Output API<br/>views.py]
         SCRAPER[scraper.py<br/>SSRF-safe fetch + extract]
-        REPUR[repurposer.py<br/>prompt build + provider calls]
+        REPUR[repurposer.py<br/>per-format generation + Job status]
+        LLM[llm.py<br/>OpenRouter/Gemini calls]
+        FORMATS[formats.py<br/>format registry: prompt + scorer]
         QSCORE[quality_score.py<br/>heuristic scoring]
         JOBMODEL[(Job / Output)]
     end
@@ -106,9 +108,9 @@ flowchart TB
 
     JOBAPI --> SCRAPER
     JOBAPI --> REPUR
-    SCRAPER -->|clean article text| REPUR
-    REPUR --> PROVIDERS
-    REPUR --> QSCORE
+    SCRAPER -->|clean article text| JOBAPI
+    REPUR --> LLM --> PROVIDERS
+    REPUR --> FORMATS --> QSCORE
     REPUR --> JOBMODEL --> DB
 
     SCHEDAPI --> SCHEDMODEL --> DB
@@ -147,7 +149,7 @@ sequenceDiagram
     end
     View->>Rep: repurpose(job)
     loop for each requested format
-        Rep->>Prov: call_with_fallback(prompt)
+        Rep->>Prov: llm.generate(model, prompt, content)
         Prov-->>Rep: generated text
         Rep->>Rep: quality_score.py scoring
         Rep->>DB: save Output (metrics)
@@ -169,7 +171,9 @@ sequenceDiagram
 ### Service-oriented design
 
 - `apps/jobs/services/scraper.py`: SSRF-safe URL fetch with DNS resolution validation
-- `apps/jobs/services/repurposer.py`: prompt building, provider calls with retry logic, output persistence
+- `apps/jobs/formats.py`: the format registry (label, system prompt, quality scorer per format)
+- `apps/jobs/services/llm.py`: OpenRouter and Gemini calls with retry, model routing and fallback
+- `apps/jobs/services/repurposer.py`: per-format generation, output persistence, Job status
 - `apps/jobs/services/quality_score.py`: heuristic 0-100 quality scoring per output format
 - `apps/scheduling/tasks.py`: scheduled email dispatch with retry and concurrency safety
 - `apps/scheduling/services/notifications.py`: account-owner confirmation emails
@@ -188,11 +192,13 @@ ContentFlow/
 │   │   ├── jobs/
 │   │   │   ├── migrations/
 │   │   │   ├── services/
+│   │   │   │   ├── llm.py
 │   │   │   │   ├── repurposer.py
 │   │   │   │   ├── scraper.py
 │   │   │   │   └── quality_score.py
 │   │   │   ├── admin.py
 │   │   │   ├── apps.py
+│   │   │   ├── formats.py
 │   │   │   ├── models.py
 │   │   │   ├── serializers.py
 │   │   │   ├── throttles.py
@@ -318,7 +324,7 @@ ContentFlow/
 ### Persistence
 
 - PostgreSQL (production) or SQLite (development) via `DATABASE_URL`
-- Local media storage under `backend/media/`
+- Avatars on Cloudinary (`CLOUDINARY_URL`)
 
 ---
 
@@ -327,7 +333,7 @@ ContentFlow/
 ### User and Profile
 
 - `User`: custom model with email as `USERNAME_FIELD`, UUID primary key, fields: `email`, `full_name`, `created_at`, `is_active`, `is_staff`
-- `Profile`: auto-created one-to-one with User via post_save signal. Fields: `avatar` (ImageField, JPEG/PNG/WebP, 2MB limit), `theme_color` (hex, default `#8A2BE2`), `default_model`, `updated_at`
+- `Profile`: auto-created one-to-one with User via post_save signal. Fields: `avatar` (Cloudinary, JPEG/PNG/WebP, 2MB limit), `default_model`, `updated_at`
 
 ### Job
 
@@ -337,7 +343,6 @@ ContentFlow/
 - `formats`: JSON list of requested output formats
 - `source_url`: optional URL source
 - `model`: AI model selected for the job
-- `provider_used`: provider (OpenRouter/Gemini)
 - `status`: `processing`, `complete`, or `failed`
 - `word_count`: auto-computed on save
 - `created_at`
@@ -381,9 +386,9 @@ The main generation logic lives in `apps/jobs/services/repurposer.py`.
 
 1. User creates a job with content or a source URL.
 2. The view triggers `repurpose(job)`.
-3. The repurposer loops through all selected formats.
-4. For each format it calls `call_with_fallback(...)`.
-5. The system prompt is built per format.
+3. The repurposer loops through the job's formats.
+4. For each format it calls `llm.generate(...)`: a Gemini model id goes to Gemini; any other id goes to OpenRouter, falling back to Gemini's default model on failure.
+5. The system prompt comes from the format registry (`formats.py`).
 6. The model response is cleaned, scored via `quality_score.py`, and saved as an Output record.
 7. Job status is updated to `complete` or `failed`.
 
@@ -392,7 +397,7 @@ The main generation logic lives in `apps/jobs/services/repurposer.py`.
 - OpenRouter as the primary API path
 - Gemini as a fallback with 11 available free models
 - Retry logic with exponential backoff (3 attempts)
-- `get_available_free_model()` fetches live model lists from both providers
+- `llm.available_models()` fetches the live OpenRouter list and adds the Gemini list
 
 ### Supported formats
 
@@ -516,7 +521,6 @@ All API routes are under `/api/v1/`.
 | POST | `/api/v1/jobs/` | Create a job and generate outputs |
 | GET | `/api/v1/jobs/<uuid>/` | Retrieve a specific job with outputs |
 | DELETE | `/api/v1/jobs/<uuid>/` | Delete a job and its outputs |
-| GET | `/api/v1/jobs/<uuid>/status/` | Poll job status and progress |
 | GET | `/api/v1/outputs/` | List outputs (filter by `?format=` and `?model=`) |
 | PATCH | `/api/v1/outputs/<uuid>/rate/` | Rate an output (1-5 stars) |
 | POST | `/api/v1/scrape/` | Fetch article text from a URL |

@@ -1,126 +1,147 @@
-"""
-apps/scheduling/tests/test_tasks.py
-
-Covers send_scheduled_email's success/retry/failure paths and
-poll_due_scheduled_emails' due-row selection.
-"""
-
+from datetime import timedelta
+from smtplib import SMTPException
 from unittest.mock import patch
 
+import pytest
 from django.core import mail
-from django.test import TestCase
+from django.core.mail.backends import locmem
 from django.utils import timezone
 
-from apps.jobs.models import Job
 from apps.scheduling.models import ScheduledEmail
-from apps.scheduling.tasks import poll_due_scheduled_emails, send_scheduled_email
-from apps.stats.models import Output
-from apps.users.models import User
+from apps.scheduling.tasks import MAX_ATTEMPTS, poll_due_scheduled_emails, send_scheduled_email
+
+Status = ScheduledEmail.Status
+READER = "reader@example.com"
 
 
-class SendScheduledEmailTests(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            email="jane@example.com", password="pass123", full_name="Jane Doe"
-        )
-        self.job = Job.objects.create(
-            user=self.user, content="source", model="openai/gpt-4o", status="complete"
-        )
-        self.output = Output.objects.create(
-            job=self.job, format="email", text="Newsletter body"
-        )
+@pytest.fixture
+def make_scheduled(user, make_output):
+    output = make_output(format="email", text="Newsletter body")
 
-    def _make_scheduled(self, **overrides):
-        defaults = dict(
-            output=self.output,
-            user=self.user,
-            recipients=["reader@example.com"],
+    def make(**overrides):
+        fields = dict(
+            output=output,
+            user=user,
+            recipients=[READER],
             subject="Weekly update",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=timezone.now() - timezone.timedelta(minutes=1),
+            edited_content="edited body",
+            status=Status.SCHEDULED,
+            scheduled_for=timezone.now() - timedelta(minutes=1),
         )
-        defaults.update(overrides)
-        return ScheduledEmail.objects.create(**defaults)
+        fields.update(overrides)
+        return ScheduledEmail.objects.create(**fields)
 
-    def test_successful_send_marks_sent_and_notifies(self):
-        scheduled = self._make_scheduled()
+    return make
+
+
+@pytest.fixture
+def smtp_down():
+    """The newsletter's SMTP delivery fails; the owner's confirmation still goes out."""
+    deliver = locmem.EmailBackend.send_messages
+
+    def send_messages(self, messages):
+        if any(READER in m.to for m in messages):
+            raise SMTPException("SMTP down")
+        return deliver(self, messages)
+
+    with patch.object(locmem.EmailBackend, "send_messages", send_messages):
+        yield
+
+
+def sent_to(address):
+    return [m for m in mail.outbox if address in m.to]
+
+
+class TestSendScheduledEmail:
+    def test_sends_the_edited_content_then_confirms_to_the_owner(self, make_scheduled, user):
+        scheduled = make_scheduled()
+
         send_scheduled_email(scheduled.id)
-        scheduled.refresh_from_db()
-        self.assertEqual(scheduled.status, "sent")
-        self.assertIsNotNone(scheduled.sent_at)
-        # newsletter send + confirmation email
-        self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(mail.outbox[0].to, ["reader@example.com"])
-        self.assertEqual(mail.outbox[1].to, [self.user.email])
 
-    @patch("apps.scheduling.tasks.EmailMessage")
-    def test_failed_send_increments_attempt_and_stays_scheduled_below_max(
-        self, mock_email_message
+        scheduled.refresh_from_db()
+        assert scheduled.status == Status.SENT
+        assert scheduled.sent_at is not None
+        (newsletter,) = sent_to(READER)
+        assert (newsletter.subject, newsletter.body) == ("Weekly update", "edited body")
+        assert len(sent_to(user.email)) == 1
+
+    def test_failure_below_the_attempt_limit_stays_scheduled_and_is_not_announced(
+        self, make_scheduled, smtp_down, user
     ):
-        mock_email_message.return_value.send.side_effect = Exception("SMTP down")
-        scheduled = self._make_scheduled()
+        scheduled = make_scheduled(attempt_count=MAX_ATTEMPTS - 2)
+
         send_scheduled_email(scheduled.id)
-        scheduled.refresh_from_db()
-        self.assertEqual(scheduled.status, "scheduled")
-        self.assertEqual(scheduled.attempt_count, 1)
-        self.assertEqual(len(mail.outbox), 0)
 
-    @patch("apps.scheduling.tasks.EmailMessage")
-    def test_failed_send_marks_failed_after_max_attempts(self, mock_email_message):
-        mock_email_message.return_value.send.side_effect = Exception("SMTP down")
-        scheduled = self._make_scheduled(attempt_count=2)
+        scheduled.refresh_from_db()
+        assert scheduled.status == Status.SCHEDULED
+        assert scheduled.attempt_count == MAX_ATTEMPTS - 1
+        assert mail.outbox == []
+
+    def test_retry_that_succeeds_is_sent(self, make_scheduled):
+        scheduled = make_scheduled(attempt_count=1)
+
         send_scheduled_email(scheduled.id)
-        scheduled.refresh_from_db()
-        self.assertEqual(scheduled.status, "failed")
-        self.assertEqual(scheduled.error_message, "SMTP down")
-        # confirmation-of-failure email only
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.user.email])
 
-    def test_non_scheduled_status_is_skipped(self):
-        scheduled = self._make_scheduled(status="cancelled")
+        scheduled.refresh_from_db()
+        assert scheduled.status == Status.SENT
+
+    def test_failure_on_the_last_attempt_marks_failed_and_tells_the_owner(
+        self, make_scheduled, smtp_down, user
+    ):
+        scheduled = make_scheduled(attempt_count=MAX_ATTEMPTS - 1)
+
         send_scheduled_email(scheduled.id)
+
         scheduled.refresh_from_db()
-        self.assertEqual(scheduled.status, "cancelled")
-        self.assertEqual(len(mail.outbox), 0)
+        assert scheduled.status == Status.FAILED
+        assert scheduled.error_message == "SMTP down"
+        (notice,) = mail.outbox
+        assert notice.to == [user.email]
+        assert "failed" in notice.subject
+
+    @pytest.mark.parametrize("status", [Status.CANCELLED, Status.SENT, Status.FAILED, Status.DRAFT])
+    def test_only_scheduled_rows_are_sent(self, make_scheduled, status):
+        scheduled = make_scheduled(status=status)
+
+        send_scheduled_email(scheduled.id)
+
+        scheduled.refresh_from_db()
+        assert scheduled.status == status
+        assert mail.outbox == []
+
+    def test_sending_twice_delivers_once(self, make_scheduled):
+        scheduled = make_scheduled()
+
+        send_scheduled_email(scheduled.id)
+        send_scheduled_email(scheduled.id)
+
+        assert len(sent_to(READER)) == 1
+
+    def test_unknown_id_is_ignored(self, db):
+        send_scheduled_email("00000000-0000-0000-0000-000000000000")
+
+        assert mail.outbox == []
 
 
-class PollDueScheduledEmailsTests(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            email="jane@example.com", password="pass123", full_name="Jane Doe"
-        )
-        self.job = Job.objects.create(
-            user=self.user, content="source", model="openai/gpt-4o", status="complete"
-        )
-        self.output = Output.objects.create(
-            job=self.job, format="email", text="body"
-        )
-
-    def test_only_due_scheduled_rows_are_sent(self):
-        due = ScheduledEmail.objects.create(
-            output=self.output,
-            user=self.user,
-            recipients=["a@example.com"],
-            subject="due",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=timezone.now() - timezone.timedelta(minutes=1),
-        )
-        not_due = ScheduledEmail.objects.create(
-            output=self.output,
-            user=self.user,
-            recipients=["b@example.com"],
-            subject="future",
-            edited_content="body",
-            status="scheduled",
-            scheduled_for=timezone.now() + timezone.timedelta(hours=1),
-        )
+class TestPollDueScheduledEmails:
+    def test_sends_only_due_scheduled_rows(self, make_scheduled):
+        due = make_scheduled()
+        future = make_scheduled(scheduled_for=timezone.now() + timedelta(hours=1))
+        cancelled = make_scheduled(status=Status.CANCELLED)
 
         poll_due_scheduled_emails()
 
-        due.refresh_from_db()
-        not_due.refresh_from_db()
-        self.assertEqual(due.status, "sent")
-        self.assertEqual(not_due.status, "scheduled")
+        for row, expected in [(due, Status.SENT), (future, Status.SCHEDULED), (cancelled, Status.CANCELLED)]:
+            row.refresh_from_db()
+            assert row.status == expected
+
+    def test_one_failing_row_does_not_stop_the_rest(self, make_scheduled):
+        first, second = make_scheduled(), make_scheduled()
+
+        with patch(
+            "apps.scheduling.tasks.send_scheduled_email",
+            side_effect=[RuntimeError("boom"), None],
+        ) as send:
+            poll_due_scheduled_emails()
+
+        assert send.call_count == 2

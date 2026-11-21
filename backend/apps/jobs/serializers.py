@@ -1,31 +1,12 @@
-"""
-Serializers for job creation, listing, detail, output rating, and scraping.
-
-Design decisions:
-    - JobCreateSerializer validates formats[] against model choices so invalid
-      formats are rejected before the service layer runs.
-    - JobListSerializer is intentionally lightweight — no outputs nested —
-      to keep paginated list responses fast.
-    - JobDetailSerializer nests OutputSerializer as a read-only many relation.
-    - OutputRateSerializer uses only user_rating with an explicit IntegerField
-      range validator; no other field is writable from this serializer.
-    - ScrapeRequestSerializer uses URLField so Django validates URL structure
-      before the scraper makes an external HTTP call.
-    - ScrapeResponseSerializer is write-only from the view's perspective —
-      it serializes the dict returned by fetch_from_url(), not a model instance.
-"""
-
+import requests
 from rest_framework import serializers
-from .models import Job
-from apps.stats.models import Output
+
+from .formats import FORMAT_CHOICES
+from .models import Job, Output
+from .services import llm, scraper
 
 
 class OutputSerializer(serializers.ModelSerializer):
-    """
-    Full output representation including generation metrics
-    Used nested inside JobDetailSerializer and standalone in OutputListView.
-    """
-
     class Meta:
         model = Output
         fields = [
@@ -45,11 +26,6 @@ class OutputSerializer(serializers.ModelSerializer):
 
 
 class OutputRateSerializer(serializers.ModelSerializer):
-    """
-    Validates a star rating submission for a single output.
-    Only user_rating is writable; all other fields are ignored.
-    """
-
     user_rating = serializers.IntegerField(min_value=1, max_value=5)
 
     class Meta:
@@ -58,52 +34,38 @@ class OutputRateSerializer(serializers.ModelSerializer):
 
 
 class JobCreateSerializer(serializers.ModelSerializer):
-    """
-    Validates job creation input from the frontend.
+    """`content` is optional when `source_url` is given: the page text is fetched into it."""
 
-    formats: list of one or more valid format choices.
-    source_url: optional; when provided, scraper runs before repurposing.
-    content: optional when source_url is provided; required otherwise.
-    model: defaults to openrouter/auto if not specified.
-    """
-
-    content = serializers.CharField(required=False, allow_blank=True, max_length=50000)
-    formats = serializers.MultipleChoiceField(
-        choices=Output.FORMAT_CHOICES,
+    content = serializers.CharField(
+        required=False, allow_blank=True, max_length=scraper.MAX_CONTENT_LENGTH
     )
+    formats = serializers.MultipleChoiceField(choices=FORMAT_CHOICES, allow_empty=False)
     source_url = serializers.URLField(required=False, allow_blank=True)
-    model = serializers.CharField(default="openrouter/free")
+    model = serializers.CharField(default=llm.DEFAULT_MODEL)
 
     class Meta:
         model = Job
-        fields = [
-            "id",
-            "content",
-            "formats",
-            "model",
-            "source_url",
-        ]
+        fields = ["id", "content", "formats", "model", "source_url"]
         read_only_fields = ["id"]
 
     def validate(self, attrs):
-        content = attrs.get("content")
-        source_url = attrs.get("source_url")
-        if not content and not source_url:
-            raise serializers.ValidationError("Provide either content or source_url.")
+        if not attrs.get("content"):
+            source_url = attrs.get("source_url")
+            if not source_url:
+                raise serializers.ValidationError("Provide either content or source_url.")
+            try:
+                attrs["content"] = scraper.fetch_from_url(source_url)["text"]
+            except (ValueError, requests.exceptions.RequestException) as exc:
+                raise serializers.ValidationError({"source_url": str(exc)}) from exc
         return attrs
 
     def create(self, validated_data):
-        if "formats" in validated_data:
-            validated_data["formats"] = list(validated_data["formats"])
+        requested = validated_data["formats"]
+        validated_data["formats"] = [key for key, _ in FORMAT_CHOICES if key in requested]
         return super().create(validated_data)
 
 
 class JobListSerializer(serializers.ModelSerializer):
-    """
-    Lightweight serializer for paginated job list responses.
-    Excludes outputs and content to keep payload small.
-    """
-
     class Meta:
         model = Job
         fields = ["id", "status", "model", "word_count", "created_at"]
@@ -111,11 +73,6 @@ class JobListSerializer(serializers.ModelSerializer):
 
 
 class JobDetailSerializer(serializers.ModelSerializer):
-    """
-    Full job representation with nested outputs.
-    Used after job creation and for GET /jobs/<id>/.
-    """
-
     outputs = OutputSerializer(many=True, read_only=True)
 
     class Meta:
@@ -134,20 +91,10 @@ class JobDetailSerializer(serializers.ModelSerializer):
 
 
 class ScrapeRequestSerializer(serializers.Serializer):
-    """
-    Validates the URL submitted to POST /api/v1/scrape/.
-    URLField rejects malformed URLs before the scraper makes any HTTP call.
-    """
-
     url = serializers.URLField()
 
 
 class ScrapeResponseSerializer(serializers.Serializer):
-    """
-    Serializes the dict returned by fetch_from_url().
-    Not tied to a model — fetch_from_url() returns a plain dict.
-    """
-
     title = serializers.CharField(allow_blank=True)
     text = serializers.CharField()
     word_count = serializers.IntegerField()

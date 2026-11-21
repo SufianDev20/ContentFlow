@@ -2,7 +2,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from apps.stats.models import Output
+from apps.jobs.models import Output
 
 
 class ScheduledEmail(models.Model):
@@ -13,13 +13,14 @@ class ScheduledEmail(models.Model):
     rescheduled to different recipients multiple times.
     """
 
-    STATUS_CHOICES = [
-        ("draft", "Draft"),
-        ("scheduled", "Scheduled"),
-        ("sent", "Sent"),
-        ("failed", "Failed"),
-        ("cancelled", "Cancelled"),
-    ]
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SCHEDULED = "scheduled", "Scheduled"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    EDITABLE_STATUSES = (Status.DRAFT, Status.SCHEDULED)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     output = models.ForeignKey(
@@ -33,7 +34,9 @@ class ScheduledEmail(models.Model):
     subject = models.CharField(max_length=255)
     edited_content = models.TextField()
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     scheduled_for = models.DateTimeField(null=True, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(blank=True, default="")

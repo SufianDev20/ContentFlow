@@ -1,22 +1,20 @@
-"""
-Confirmation email sent to the account owner after a scheduled send
-resolves (success or failure). Never sent before the send attempt.
-"""
+"""Confirmation email to the account owner once a scheduled send has resolved."""
 
 import logging
 import time
 
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail
+
+from ..models import ScheduledEmail
 
 logger = logging.getLogger(__name__)
 
 
 def send_confirmation_email(scheduled_email):
-    recipient = scheduled_email.user.email
     recipient_count = len(scheduled_email.recipients)
 
-    if scheduled_email.status == "sent":
+    if scheduled_email.status == ScheduledEmail.Status.SENT:
         subject = "Your scheduled email was sent"
         body = (
             f'Your email "{scheduled_email.subject}" was sent to '
@@ -30,19 +28,18 @@ def send_confirmation_email(scheduled_email):
             f"Job: /job/?id={scheduled_email.output.job_id}"
         )
 
-    # ponytail: Mailtrap sandbox rejects 2 mails inside ~1s (550); drop when on a real SMTP provider.
-    time.sleep(1.5)
+    # Some SMTP sandboxes (Mailtrap) reject two mails within ~1s.
+    time.sleep(settings.EMAIL_NOTIFICATION_DELAY_SECONDS)
     try:
         send_mail(
             subject=subject,
             message=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[recipient],
+            recipient_list=[scheduled_email.user.email],
             fail_silently=False,
         )
     except Exception:
-        # Notification failure must not fail the send task that called this —
-        # the ScheduledEmail row already reflects the real outcome.
+        # The ScheduledEmail row already records the real outcome.
         logger.exception(
             "Failed to send confirmation email for ScheduledEmail %s", scheduled_email.id
         )

@@ -1,18 +1,3 @@
-// FIXED: removed local apiFetch/authHeaders. Uses the shared apiFetch
-// from common.js, which sends the httpOnly cookie via credentials:
-// 'include' and retries once after a refresh on 401.
-
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str == null ? '' : String(str);
-    return div.innerHTML;
-}
-
-function formatDate(iso) {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
 function badgeClass(status) {
     if (status === 'complete') return 'badge badge-status-complete';
     if (status === 'failed') return 'badge badge-status-failed';

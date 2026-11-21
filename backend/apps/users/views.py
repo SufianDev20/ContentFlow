@@ -1,76 +1,68 @@
-"""
-Authentication and account settings for ContentFlow AI
-
-Endpoints:
-  POST   /api/v1/auth/register/        - create account
-  POST   /api/v1/auth/login/           - sets httpOnly JWT cookies
-  POST   /api/v1/auth/token/refresh/   - rotates access cookie using refresh cookie
-  POST   /api/v1/auth/logout/          - blacklists refresh token, clears cookies
-  GET    /api/v1/auth/me/              - retrieve current user profile
-  GET    /api/v1/auth/profile/         - retrieve settings-modal fields
-  PATCH  /api/v1/auth/profile/         - update full_name / theme_color / default_model
-  POST   /api/v1/auth/profile/avatar/  - upload profile image
-  DELETE /api/v1/auth/profile/avatar/  - remove profile image
-  DELETE /api/v1/auth/account/         - hard delete account (requires password)
-"""
-
 import logging
-import uuid as _uuid
+import uuid
+
 import cloudinary.exceptions
 from cloudinary import uploader as cloudinary_uploader
 from django.conf import settings
 from django.db import transaction
-from rest_framework import permissions, status, generics
+from rest_framework import generics, permissions, status
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-from .models import User, Profile
-from .serializers import (
-    UserSerializer,
-    RegisterSerializer,
-    ProfileUpdateSerializer,
-    AvatarUploadSerializer,
-    AccountDeleteSerializer,
-)
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .models import User
+from .serializers import (
+    AccountDeleteSerializer,
+    AvatarUploadSerializer,
+    ProfileUpdateSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
+from .throttles import AccountActionThrottle, AuthRateThrottle
 
 logger = logging.getLogger(__name__)
 
-
-class AuthRateThrottle(AnonRateThrottle):
-    scope = "auth"
-
-
-class AccountActionThrottle(UserRateThrottle):
-    scope = "account_action"
+# The refresh cookie is only sent to the auth endpoints.
+REFRESH_COOKIE_PATH = "/api/v1/auth/"
 
 
 def _set_jwt_cookies(response, access, refresh=None):
-    """Shared cookie-setting logic for login and refresh."""
     cfg = settings.SIMPLE_JWT
+    cookie_options = {
+        "httponly": cfg["AUTH_COOKIE_HTTP_ONLY"],
+        "secure": cfg["AUTH_COOKIE_SECURE"],
+        "samesite": cfg["AUTH_COOKIE_SAMESITE"],
+    }
     response.set_cookie(
         cfg["AUTH_COOKIE"],
         access,
         max_age=int(cfg["ACCESS_TOKEN_LIFETIME"].total_seconds()),
-        httponly=cfg["AUTH_COOKIE_HTTP_ONLY"],
-        secure=cfg["AUTH_COOKIE_SECURE"],
-        samesite=cfg["AUTH_COOKIE_SAMESITE"],
         path="/",
+        **cookie_options,
     )
     if refresh is not None:
         response.set_cookie(
             cfg["AUTH_COOKIE_REFRESH"],
             refresh,
             max_age=int(cfg["REFRESH_TOKEN_LIFETIME"].total_seconds()),
-            httponly=cfg["AUTH_COOKIE_HTTP_ONLY"],
-            secure=cfg["AUTH_COOKIE_SECURE"],
-            samesite=cfg["AUTH_COOKIE_SAMESITE"],
-            path="/api/v1/auth/",
+            path=REFRESH_COOKIE_PATH,
+            **cookie_options,
         )
+
+
+def _clear_jwt_cookies(response):
+    response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"], path="/")
+    response.delete_cookie(
+        settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"], path=REFRESH_COOKIE_PATH
+    )
+
+
+def _user_response(request):
+    user = User.objects.select_related("profile").get(pk=request.user.pk)
+    return Response(UserSerializer(user, context={"request": request}).data)
 
 
 def _delete_cloudinary_resource(resource):
@@ -106,18 +98,21 @@ class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        access = serializer.validated_data["access"]
-        refresh = serializer.validated_data["refresh"]
 
         user = serializer.user
-        body = {
-            "id": str(user.id),
-            "email": user.email,
-            "full_name": user.full_name,
-            "default_model": getattr(user.profile, "default_model", ""),
-        }
-        response = Response(body, status=status.HTTP_200_OK)
-        _set_jwt_cookies(response, str(access), str(refresh))
+        response = Response(
+            {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.full_name,
+                "default_model": user.profile.default_model,
+            }
+        )
+        _set_jwt_cookies(
+            response,
+            str(serializer.validated_data["access"]),
+            str(serializer.validated_data["refresh"]),
+        )
         return response
 
 
@@ -138,15 +133,19 @@ class CookieTokenRefreshView(TokenRefreshView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        access = serializer.validated_data["access"]
-        new_refresh = serializer.validated_data.get("refresh")
-        response = Response({"detail": "Refreshed."}, status=status.HTTP_200_OK)
-        _set_jwt_cookies(response, access, new_refresh)
+        response = Response({"detail": "Refreshed."})
+        _set_jwt_cookies(
+            response,
+            serializer.validated_data["access"],
+            serializer.validated_data.get("refresh"),
+        )
         return response
 
 
 class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # Open to expired sessions too, so logging out always clears the refresh cookie.
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         refresh_cookie = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"])
@@ -157,10 +156,7 @@ class LogoutView(APIView):
                 pass
 
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"], path="/")
-        response.delete_cookie(
-            settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"], path="/api/v1/auth/"
-        )
+        _clear_jwt_cookies(response)
         return response
 
 
@@ -168,32 +164,21 @@ class MeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = User.objects.select_related("profile").get(pk=request.user.pk)
-        serializer = UserSerializer(user, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return _user_response(request)
 
 
 class ProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
-    def get_throttles(self):
-        if self.request.method in ["PATCH", "POST", "DELETE"]:
-            return [AccountActionThrottle()]
-        return []
+    throttle_classes = [AccountActionThrottle]
 
     def get(self, request):
-        user = User.objects.select_related("profile").get(pk=request.user.pk)
-        serializer = UserSerializer(user, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return _user_response(request)
 
     def patch(self, request):
         serializer = ProfileUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_user_and_profile(request.user)
-
-        user = User.objects.select_related("profile").get(pk=request.user.pk)
-        response_serializer = UserSerializer(user, context={"request": request})
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return _user_response(request)
 
 
 class AvatarView(APIView):
@@ -205,13 +190,11 @@ class AvatarView(APIView):
         serializer = AvatarUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        profile, _ = Profile.objects.get_or_create(user=request.user)
+        profile = request.user.profile
         previous_avatar = profile.avatar
 
         uploaded = serializer.validated_data["avatar"]
-        ext = getattr(uploaded, "verified_extension", None)
-        if ext:
-            uploaded.name = f"{_uuid.uuid4().hex}.{ext}"
+        uploaded.name = f"{uuid.uuid4().hex}.{uploaded.verified_extension}"
         profile.avatar = uploaded
         try:
             with transaction.atomic():
@@ -225,20 +208,15 @@ class AvatarView(APIView):
         if previous_avatar:
             _delete_cloudinary_resource(previous_avatar)
 
-        user = User.objects.select_related("profile").get(pk=request.user.pk)
-        response_serializer = UserSerializer(user, context={"request": request})
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return _user_response(request)
 
     def delete(self, request):
-        profile = getattr(request.user, "profile", None)
-        if profile and profile.avatar:
+        profile = request.user.profile
+        if profile.avatar:
             _delete_cloudinary_resource(profile.avatar)
             profile.avatar = None
             profile.save()
-
-        user = User.objects.select_related("profile").get(pk=request.user.pk)
-        response_serializer = UserSerializer(user, context={"request": request})
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return _user_response(request)
 
 
 class AccountDeleteView(APIView):
@@ -252,14 +230,10 @@ class AccountDeleteView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = request.user
-        profile = getattr(user, "profile", None)
-        if profile and profile.avatar:
-            _delete_cloudinary_resource(profile.avatar)
+        if user.profile.avatar:
+            _delete_cloudinary_resource(user.profile.avatar)
 
         user.delete()
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"], path="/")
-        response.delete_cookie(
-            settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"], path="/api/v1/auth/"
-        )
+        _clear_jwt_cookies(response)
         return response
