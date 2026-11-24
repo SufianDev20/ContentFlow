@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "apps.jobs",
     "apps.stats",
     "apps.scheduling",
+    "apps.evals",
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",

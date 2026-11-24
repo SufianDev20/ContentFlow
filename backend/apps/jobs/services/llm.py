@@ -93,7 +93,9 @@ def _timed_generation(provider: str, call) -> Generation:
     )
 
 
-def _openrouter_call(model: str, system_prompt: str, content: str):
+def _openrouter_call(model: str, system_prompt: str, content: str, *,
+                     temperature: float = TEMPERATURE,
+                     max_tokens: int = MAX_OUTPUT_TOKENS):
     def request():
         resp = requests.post(
             f"{OPENROUTER_BASE_URL}/chat/completions",
@@ -109,8 +111,8 @@ def _openrouter_call(model: str, system_prompt: str, content: str):
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": content},
                 ],
-                "temperature": TEMPERATURE,
-                "max_completion_tokens": MAX_OUTPUT_TOKENS,
+                "temperature": temperature,
+                "max_completion_tokens": max_tokens,
             },
             timeout=REQUEST_TIMEOUT,
         )
@@ -135,7 +137,9 @@ def _gemini_client():
     return genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
-def _gemini_call(model: str, system_prompt: str, content: str):
+def _gemini_call(model: str, system_prompt: str, content: str, *,
+                 temperature: float = TEMPERATURE,
+                 max_tokens: int = MAX_OUTPUT_TOKENS):
     from google.genai import types
 
     client = _gemini_client()
@@ -146,8 +150,8 @@ def _gemini_call(model: str, system_prompt: str, content: str):
             contents=content,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
-                temperature=TEMPERATURE,
-                max_output_tokens=MAX_OUTPUT_TOKENS,
+                temperature=temperature,
+                max_output_tokens=max_tokens,
             ),
         )
 
@@ -159,16 +163,19 @@ def _gemini_call(model: str, system_prompt: str, content: str):
     return response.text, getattr(response.usage_metadata, "candidates_token_count", 0) or 0
 
 
-def generate(model: str, system_prompt: str, content: str) -> Generation:
+def generate(model: str, system_prompt: str, content: str, *,
+             temperature: float = TEMPERATURE,
+             max_tokens: int = MAX_OUTPUT_TOKENS) -> Generation:
+    kwargs = {"temperature": temperature, "max_tokens": max_tokens}
     if model in GEMINI_FREE_MODELS or model.startswith("gemini"):
-        return _timed_generation("gemini", lambda: _gemini_call(model, system_prompt, content))
+        return _timed_generation("gemini", lambda: _gemini_call(model, system_prompt, content, **kwargs))
     try:
-        return _timed_generation("openrouter", lambda: _openrouter_call(model, system_prompt, content))
+        return _timed_generation("openrouter", lambda: _openrouter_call(model, system_prompt, content, **kwargs))
     except (requests.exceptions.RequestException, ProviderError) as exc:
         logger.warning("OpenRouter failed (%s); falling back to Gemini", exc)
         return _timed_generation(
             "gemini",
-            lambda: _gemini_call(settings.GEMINI_FALLBACK_MODEL, system_prompt, content),
+            lambda: _gemini_call(settings.GEMINI_FALLBACK_MODEL, system_prompt, content, **kwargs),
         )
 
 

@@ -1,0 +1,444 @@
+[
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "water-on-mars-2015",
+      "title": "NASA Confirms Evidence of Liquid Water on Mars",
+      "topic": "science",
+      "source_text": "NASA announced on September 28, 2015, that it had found strong evidence of liquid water flowing on the surface of Mars. The discovery was made using data from the Mars Reconnaissance Orbiter (MRO), which detected hydrated salts known as perchlorates in dark streaks called recurring slope lineae (RSL). These streaks appear on steep slopes during warm seasons when temperatures rise above minus 23 degrees Celsius. The lead researcher, Lujendra Ojha of the Georgia Institute of Technology, published the findings in the journal Nature Geoscience. The discovery raised new questions about the possibility of microbial life on Mars, though NASA cautioned that the water is extremely salty and not suitable for life as we know it. The MRO has been orbiting Mars since 2006.",
+      "key_facts": [
+        "NASA announced evidence of liquid water on Mars on September 28, 2015",
+        "The Mars Reconnaissance Orbiter (MRO) provided the data",
+        "Hydrated salts called perchlorates were detected in dark streaks called recurring slope lineae",
+        "The lead researcher was Lujendra Ojha of Georgia Institute of Technology",
+        "Findings were published in Nature Geoscience",
+        "The MRO has been orbiting Mars since 2006"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "crispr-nobel-2020",
+      "title": "Charpentier and Doudna Win Nobel Prize for CRISPR",
+      "topic": "science",
+      "source_text": "Emmanuelle Charpentier and Jennifer Doudna were awarded the 2020 Nobel Prize in Chemistry for developing CRISPR-Cas9 gene editing technology. The announcement was made on October 7, 2020 by the Royal Swedish Academy of Sciences. They became the first two women to share a Nobel Prize in a science category without a male co-laureate. CRISPR-Cas9 allows scientists to edit DNA with high precision, functioning like molecular scissors. Charpentier, born in France, is affiliated with the Max Planck Unit for the Science of Pathogens in Berlin. Doudna is a professor at the University of California, Berkeley. Their foundational paper was published in the journal Science in June 2012. The prize amount was 10 million Swedish kronor, approximately $1.1 million.",
+      "key_facts": [
+        "Emmanuelle Charpentier and Jennifer Doudna won the 2020 Nobel Prize in Chemistry",
+        "Announced on October 7, 2020 by the Royal Swedish Academy of Sciences",
+        "They were the first two women to share a Nobel in science without a male co-laureate",
+        "CRISPR-Cas9 functions like molecular scissors for editing DNA",
+        "Their foundational paper was published in Science in June 2012",
+        "Prize amount was 10 million Swedish kronor, approximately $1.1 million"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "apple-vision-pro-launch",
+      "title": "Apple Launches Vision Pro Mixed Reality Headset",
+      "topic": "tech",
+      "source_text": "Apple officially launched its Vision Pro mixed reality headset on February 2, 2024, in the United States. Priced at $3,499, the device features a dual-chip design with the M2 processor and the new R1 chip dedicated to processing sensor data with 12 milliseconds of latency. The headset runs visionOS, Apple's first spatial computing operating system. It weighs between 600 and 650 grams depending on the configuration and includes 23 million pixels across two micro-OLED displays. Apple CEO Tim Cook called it 'the most advanced personal electronics device ever.' Pre-orders began on January 19, 2024 and sold out within minutes. The device includes EyeSight, a feature that shows a digital representation of the wearer's eyes to people nearby.",
+      "key_facts": [
+        "Vision Pro launched on February 2, 2024 in the United States",
+        "Priced at $3,499",
+        "Features M2 processor and new R1 chip with 12 milliseconds latency",
+        "Runs visionOS, Apple's first spatial computing OS",
+        "Weighs between 600 and 650 grams",
+        "Includes 23 million pixels across two micro-OLED displays",
+        "Pre-orders began January 19, 2024"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "openai-gpt4-release",
+      "title": "OpenAI Releases GPT-4 Multimodal Model",
+      "topic": "tech",
+      "source_text": "OpenAI released GPT-4 on March 14, 2023, marking a significant leap in large language model capabilities. Unlike its predecessor GPT-3.5, GPT-4 is multimodal, accepting both text and image inputs while producing text outputs. The model scored in the 90th percentile on the Uniform Bar Exam and the 99th percentile on the Biology Olympiad. GPT-4 was initially available through ChatGPT Plus at $20 per month and through the API with an 8K and 32K context window. OpenAI CEO Sam Altman stated that GPT-4 was trained using Microsoft Azure infrastructure. The company spent over $100 million on the training run. Safety testing included over 50 experts in AI risks who red-teamed the model before release.",
+      "key_facts": [
+        "GPT-4 was released on March 14, 2023",
+        "GPT-4 is multimodal, accepting text and image inputs",
+        "Scored in the 90th percentile on the Uniform Bar Exam",
+        "Scored in the 99th percentile on the Biology Olympiad",
+        "Available through ChatGPT Plus at $20 per month",
+        "Trained using Microsoft Azure infrastructure",
+        "Over 50 experts red-teamed the model before release"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "fed-rate-hike-2022",
+      "title": "Federal Reserve Raises Interest Rates to Fight Inflation",
+      "topic": "finance",
+      "source_text": "The Federal Reserve raised its benchmark interest rate by 75 basis points on June 15, 2022, the largest single increase since 1994. Fed Chair Jerome Powell announced the decision at a press conference following the two-day Federal Open Market Committee (FOMC) meeting. The move brought the federal funds rate to a target range of 1.50% to 1.75%. The decision came after the Consumer Price Index showed inflation at 8.6% in May 2022, the highest since December 1981. All FOMC members voted in favor except Esther George, President of the Kansas City Fed, who preferred a 50-basis-point increase. The rate hike was intended to slow borrowing and spending to bring inflation closer to the Fed's 2% target.",
+      "key_facts": [
+        "The Fed raised rates by 75 basis points on June 15, 2022",
+        "It was the largest single increase since 1994",
+        "Fed Chair Jerome Powell announced the decision",
+        "Federal funds rate moved to 1.50% to 1.75% target range",
+        "CPI showed inflation at 8.6% in May 2022, highest since December 1981",
+        "Esther George of Kansas City Fed dissented, preferring 50 basis points"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "svb-collapse-2023",
+      "title": "Silicon Valley Bank Collapses in Largest Failure Since 2008",
+      "topic": "finance",
+      "source_text": "Silicon Valley Bank (SVB) was closed by California regulators on March 10, 2023, marking the largest U.S. bank failure since Washington Mutual in 2008. The FDIC was appointed as receiver. SVB had $209 billion in assets and $175.4 billion in deposits at the end of 2022. The collapse was triggered by a bank run after SVB announced a $1.8 billion loss on the sale of U.S. Treasury bonds and planned to raise $2.25 billion in new capital. Within 24 hours, depositors attempted to withdraw $42 billion. SVB primarily served technology startups and venture capital firms. On March 12, the Treasury Department, Federal Reserve, and FDIC jointly announced that all depositors would be made whole, invoking the systemic risk exception.",
+      "key_facts": [
+        "SVB was closed by California regulators on March 10, 2023",
+        "Largest U.S. bank failure since Washington Mutual in 2008",
+        "SVB had $209 billion in assets at end of 2022",
+        "SVB had $175.4 billion in deposits at end of 2022",
+        "SVB announced a $1.8 billion loss on U.S. Treasury bond sales",
+        "Depositors attempted to withdraw $42 billion within 24 hours",
+        "All depositors were made whole via systemic risk exception on March 12"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "mrna-vaccine-tech",
+      "title": "How mRNA Vaccines Changed the COVID-19 Pandemic Response",
+      "topic": "health",
+      "source_text": "The Pfizer-BioNTech COVID-19 vaccine received Emergency Use Authorization from the FDA on December 11, 2020, becoming the first mRNA vaccine approved for use in humans. The Moderna vaccine followed on December 18, 2020. The Pfizer vaccine showed 95% efficacy in clinical trials involving 43,548 participants aged 16 and older. Moderna's vaccine demonstrated 94.1% efficacy in trials with 30,420 participants. Both vaccines work by instructing cells to produce the SARS-CoV-2 spike protein, triggering an immune response. The technology was developed over decades, with key contributions from Katalin Kariko and Drew Weissman at the University of Pennsylvania. By December 2021, over 8.5 billion COVID-19 vaccine doses had been administered worldwide.",
+      "key_facts": [
+        "Pfizer-BioNTech vaccine received FDA EUA on December 11, 2020",
+        "Moderna vaccine received EUA on December 18, 2020",
+        "Pfizer showed 95% efficacy in trials with 43,548 participants",
+        "Moderna showed 94.1% efficacy in trials with 30,420 participants",
+        "Key mRNA contributions from Katalin Kariko and Drew Weissman at UPenn",
+        "Over 8.5 billion doses administered worldwide by December 2021"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "ozempic-weight-loss",
+      "title": "Ozempic and the GLP-1 Weight Loss Drug Revolution",
+      "topic": "health",
+      "source_text": "Novo Nordisk's semaglutide, sold as Ozempic for diabetes and Wegovy for weight loss, became one of the most prescribed drugs in the U.S. by 2023. Ozempic was approved by the FDA for type 2 diabetes in December 2017 at doses of 0.5mg and 1mg weekly. Wegovy, the higher-dose (2.4mg) formulation, was approved for chronic weight management in June 2021. In the STEP 1 clinical trial, participants taking Wegovy lost an average of 14.9% of their body weight over 68 weeks, compared to 2.4% in the placebo group. The trial enrolled 1,961 adults with BMI of 30 or higher. Novo Nordisk's market capitalization surpassed $400 billion in 2023, briefly making it the most valuable company in Europe. Semaglutide works by mimicking the GLP-1 hormone, which regulates appetite and blood sugar.",
+      "key_facts": [
+        "Ozempic was FDA-approved for type 2 diabetes in December 2017",
+        "Wegovy (2.4mg dose) was approved for weight management in June 2021",
+        "STEP 1 trial: participants lost average 14.9% body weight over 68 weeks",
+        "Placebo group lost 2.4% in the same trial",
+        "STEP 1 enrolled 1,961 adults with BMI 30 or higher",
+        "Novo Nordisk market cap surpassed $400 billion in 2023",
+        "Semaglutide mimics the GLP-1 hormone"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "paris-climate-accord",
+      "title": "195 Nations Adopt the Paris Climate Agreement",
+      "topic": "politics",
+      "source_text": "On December 12, 2015, 195 nations adopted the Paris Agreement at the COP21 climate conference in Le Bourget, France. The agreement set a goal to limit global temperature rise to well below 2 degrees Celsius above pre-industrial levels, with efforts to limit it to 1.5 degrees Celsius. French Foreign Minister Laurent Fabius, who presided over the conference, gaveled the accord into effect. Each country submitted nationally determined contributions (NDCs) outlining their emissions reduction targets. The agreement entered into force on November 4, 2016, after 55 countries representing at least 55% of global emissions ratified it. The United States initially joined under President Obama, withdrew under President Trump on November 4, 2020, and rejoined under President Biden on February 19, 2021.",
+      "key_facts": [
+        "195 nations adopted the Paris Agreement on December 12, 2015",
+        "Goal: limit temperature rise to well below 2 degrees Celsius",
+        "French Foreign Minister Laurent Fabius presided over the conference",
+        "Agreement entered into force on November 4, 2016",
+        "US withdrew under Trump on November 4, 2020",
+        "US rejoined under Biden on February 19, 2021"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "ukraine-eu-candidacy",
+      "title": "EU Grants Ukraine Candidate Status",
+      "topic": "politics",
+      "source_text": "The European Council granted Ukraine official EU candidate status on June 23, 2022, in a historic decision that came just four months after Russia's full-scale invasion began on February 24, 2022. The decision was unanimous among all 27 EU member states. Ukraine had formally applied for EU membership on February 28, 2022, just four days after the invasion. European Commission President Ursula von der Leyen called it 'a historic moment.' Ukrainian President Volodymyr Zelensky said the decision was 'a unique and historic moment in Ukraine-EU relations.' Moldova was also granted candidate status at the same summit. EU enlargement Commissioner Oliver Varhelyi stated that Ukraine would need to meet seven key reform conditions before accession talks could begin.",
+      "key_facts": [
+        "Ukraine received EU candidate status on June 23, 2022",
+        "Decision was unanimous among 27 EU member states",
+        "Russia's full-scale invasion began on February 24, 2022",
+        "Ukraine applied for EU membership on February 28, 2022",
+        "Moldova was also granted candidate status at the same summit",
+        "Seven key reform conditions must be met before accession talks"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "usain-bolt-100m",
+      "title": "Usain Bolt Sets 100m World Record at Berlin 2009",
+      "topic": "sports",
+      "source_text": "Usain Bolt of Jamaica set the world record in the 100 meters at the 2009 World Championships in Athletics in Berlin, Germany, running 9.58 seconds on August 16, 2009. He beat his own previous record of 9.69 seconds set at the 2008 Beijing Olympics. Bolt's reaction time at the start was 0.146 seconds. American Tyson Gay finished second with a time of 9.71 seconds, which was also under the previous world record. Bolt reached a top speed of 44.72 km/h (27.8 mph) during the race. The record was set at the Olympic Stadium in Berlin before 60,000 spectators. Bolt was 22 years old at the time and stood 6 feet 5 inches (1.96 m) tall. His stride length during the race averaged approximately 2.44 meters.",
+      "key_facts": [
+        "Bolt ran 9.58 seconds on August 16, 2009 in Berlin",
+        "Previous record was 9.69 seconds at 2008 Beijing Olympics",
+        "Bolt's reaction time was 0.146 seconds",
+        "Tyson Gay finished second at 9.71 seconds",
+        "Bolt's top speed was 44.72 km/h (27.8 mph)",
+        "60,000 spectators at Olympic Stadium in Berlin",
+        "Bolt was 22 years old and 6 feet 5 inches tall"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "fifa-women-wc-2023",
+      "title": "Spain Wins 2023 FIFA Women's World Cup",
+      "topic": "sports",
+      "source_text": "Spain won the 2023 FIFA Women's World Cup on August 20, 2023, defeating England 1-0 in the final held at Stadium Australia in Sydney. Olga Carmona scored the only goal in the 29th minute. It was Spain's first Women's World Cup title. The tournament was co-hosted by Australia and New Zealand, the first time the Women's World Cup was held across two countries. 32 teams participated, up from 24 in the previous edition. Japan's Hinata Miyazawa won the Golden Boot with 5 goals. Spain's goalkeeper Cata Coll was named the Golden Glove winner. Total tournament attendance was 1.978 million across 64 matches. The United States, the defending champion, was eliminated in the round of 16 by Sweden on penalties.",
+      "key_facts": [
+        "Spain defeated England 1-0 in the final on August 20, 2023",
+        "Olga Carmona scored in the 29th minute",
+        "Final held at Stadium Australia in Sydney",
+        "Co-hosted by Australia and New Zealand, first across two countries",
+        "32 teams participated, up from 24",
+        "Hinata Miyazawa won Golden Boot with 5 goals",
+        "Total attendance was 1.978 million across 64 matches"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "james-webb-first-images",
+      "title": "James Webb Space Telescope Reveals First Deep Field Image",
+      "topic": "science",
+      "source_text": "NASA released the first full-color image from the James Webb Space Telescope (JWST) on July 11, 2022. President Joe Biden unveiled the image at a White House event. The image, known as Webb's First Deep Field, shows galaxy cluster SMACS 0723 as it appeared 4.6 billion years ago. JWST cost approximately $10 billion and took over 25 years to develop. The telescope was launched on December 25, 2021 aboard an Ariane 5 rocket from French Guiana. It orbits the Sun at the second Lagrange point (L2), approximately 1.5 million kilometers from Earth. The primary mirror is 6.5 meters in diameter, composed of 18 gold-coated beryllium segments. JWST is a joint project of NASA, the European Space Agency (ESA), and the Canadian Space Agency (CSA).",
+      "key_facts": [
+        "First full-color image released on July 11, 2022",
+        "President Biden unveiled it at the White House",
+        "Image shows galaxy cluster SMACS 0723, 4.6 billion years old",
+        "JWST cost approximately $10 billion over 25+ years",
+        "Launched December 25, 2021 on Ariane 5 from French Guiana",
+        "Orbits at L2, 1.5 million km from Earth",
+        "Primary mirror is 6.5 meters with 18 gold-coated beryllium segments"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "twitter-musk-acquisition",
+      "title": "Elon Musk Completes Twitter Acquisition",
+      "topic": "tech",
+      "source_text": "Elon Musk completed his acquisition of Twitter on October 27, 2022 for approximately $44 billion, or $54.20 per share. The deal was initially proposed on April 14, 2022. Musk immediately fired several top executives including CEO Parag Agrawal, CFO Ned Segal, and head of legal policy Vijaya Gadde. Within the first week, Musk laid off approximately 3,700 employees, roughly half of Twitter's workforce. He later rebranded the platform to X in July 2023. The acquisition was financed through a combination of $13 billion in bank loans, $7.1 billion from equity co-investors, and the remainder from Musk's personal funds, partly through sales of Tesla stock. Twitter had approximately 450 million monthly active users at the time of acquisition.",
+      "key_facts": [
+        "Acquisition completed on October 27, 2022 for $44 billion ($54.20/share)",
+        "Deal initially proposed April 14, 2022",
+        "CEO Parag Agrawal, CFO Ned Segal, and Vijaya Gadde were fired",
+        "Approximately 3,700 employees laid off, about half the workforce",
+        "Platform rebranded to X in July 2023",
+        "Financed with $13 billion in bank loans and $7.1 billion from equity co-investors"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "india-chandrayaan3",
+      "title": "India Becomes Fourth Country to Land on the Moon",
+      "topic": "science",
+      "source_text": "India's Chandrayaan-3 mission successfully landed on the Moon's south pole region on August 23, 2023, making India the fourth country to achieve a soft lunar landing after the Soviet Union, the United States, and China. The lander, named Vikram, touched down at 69.37 degrees south latitude. ISRO (Indian Space Research Organisation) Chairman S. Somanath confirmed the landing from the mission control center in Bengaluru. The mission launched on July 14, 2023 from the Satish Dhawan Space Centre in Sriharikota using an LVM3 rocket. The total mission cost was approximately 6.15 billion Indian rupees ($75 million). The Pragyan rover, weighing 26 kg, deployed from the lander and operated for 14 Earth days, analyzing the lunar soil composition.",
+      "key_facts": [
+        "Chandrayaan-3 landed on August 23, 2023 at the Moon's south pole",
+        "India became the fourth country with a soft lunar landing",
+        "Lander Vikram touched down at 69.37 degrees south latitude",
+        "ISRO Chairman S. Somanath confirmed from Bengaluru",
+        "Launched July 14, 2023 from Sriharikota on LVM3 rocket",
+        "Total cost approximately 6.15 billion rupees ($75 million)",
+        "Pragyan rover weighed 26 kg and operated for 14 Earth days"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "spotify-layoffs-2023",
+      "title": "Spotify Cuts 17% of Workforce in Third Round of 2023 Layoffs",
+      "topic": "tech",
+      "source_text": "Spotify announced on December 4, 2023 that it would lay off approximately 1,500 employees, about 17% of its workforce. CEO Daniel Ek shared the news in a blog post, citing the need to become 'right-sized' and reduce costs. This was the third round of layoffs in 2023, following cuts of 600 employees in January and 200 in June. Despite reporting its first operating profit in Q3 2023 of 32 million euros, Ek stated the company's cost structure was still too large. Spotify had approximately 9,800 employees before the December announcement. The company's stock rose 7% following the announcement. Spotify had 226 million premium subscribers and 574 million monthly active users as of Q3 2023.",
+      "key_facts": [
+        "1,500 employees laid off on December 4, 2023, about 17% of workforce",
+        "CEO Daniel Ek announced via blog post",
+        "Third round of 2023 layoffs (600 in January, 200 in June)",
+        "Q3 2023 operating profit was 32 million euros",
+        "Spotify had approximately 9,800 employees before December cuts",
+        "226 million premium subscribers and 574 million MAU as of Q3 2023"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "bitcoin-etf-approval",
+      "title": "SEC Approves First Spot Bitcoin ETFs",
+      "topic": "finance",
+      "source_text": "The U.S. Securities and Exchange Commission (SEC) approved 11 spot Bitcoin exchange-traded funds on January 10, 2024. SEC Chairman Gary Gensler stated the approval was based on a court ruling in the Grayscale case, not an endorsement of Bitcoin. The approved ETFs included products from BlackRock (iShares Bitcoin Trust, ticker IBIT), Fidelity (Wise Origin Bitcoin Fund, FBTC), and Grayscale (Bitcoin Trust, GBTC), among others. On the first day of trading, January 11, the 11 ETFs collectively saw $4.6 billion in trading volume. BlackRock's IBIT attracted the most inflows. Bitcoin's price was approximately $46,000 at the time of approval. The approval came after more than a decade of rejected applications, with the Winklevoss twins' application first denied in 2013.",
+      "key_facts": [
+        "SEC approved 11 spot Bitcoin ETFs on January 10, 2024",
+        "Gary Gensler said approval based on Grayscale court ruling, not endorsement",
+        "BlackRock's iShares Bitcoin Trust has ticker IBIT",
+        "Fidelity's fund is Wise Origin Bitcoin Fund, ticker FBTC",
+        "First day trading volume was $4.6 billion across all 11 ETFs",
+        "Bitcoin price was approximately $46,000 at approval",
+        "Winklevoss twins' application first denied in 2013"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "yoga-mental-health",
+      "title": "Study Finds Yoga Reduces Anxiety as Effectively as CBT",
+      "topic": "health",
+      "source_text": "A randomized controlled trial published in JAMA Psychiatry on June 7, 2023 found that Kundalini yoga was as effective as cognitive behavioral therapy (CBT) in treating generalized anxiety disorder. The study was led by Dr. Naomi Simon at NYU Grossman School of Medicine and enrolled 226 adults diagnosed with GAD. Participants were randomly assigned to Kundalini yoga, CBT, or stress education (the control group). After 12 weeks, 54% of yoga participants and 71% of CBT participants showed clinical improvement, compared to 33% in the control group. While CBT showed a higher response rate, yoga met the statistical threshold for non-inferiority. Sessions were held twice weekly for 45 minutes. The study was funded by the National Institute of Mental Health (NIMH) with grant number R01MH101547.",
+      "key_facts": [
+        "Published in JAMA Psychiatry on June 7, 2023",
+        "Led by Dr. Naomi Simon at NYU Grossman School of Medicine",
+        "226 adults with generalized anxiety disorder enrolled",
+        "54% of yoga participants improved vs 71% CBT vs 33% control after 12 weeks",
+        "Yoga met statistical threshold for non-inferiority to CBT",
+        "Sessions were twice weekly for 45 minutes",
+        "Funded by NIMH grant R01MH101547"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "eu-ai-act-2024",
+      "title": "European Union Passes Landmark AI Act",
+      "topic": "politics",
+      "source_text": "The European Parliament approved the AI Act on March 13, 2024, with 523 votes in favor, 46 against, and 49 abstentions. It is the world's first comprehensive legal framework for artificial intelligence. The regulation classifies AI systems into four risk categories: unacceptable, high, limited, and minimal risk. AI systems deemed unacceptable, such as social scoring by governments and real-time biometric surveillance in public spaces, are banned. High-risk systems, including those used in hiring and law enforcement, face strict requirements including mandatory impact assessments. General-purpose AI models like GPT-4 must comply with transparency requirements. Companies face fines of up to 35 million euros or 7% of global annual revenue for the most serious violations. The law takes full effect in August 2026.",
+      "key_facts": [
+        "European Parliament approved AI Act on March 13, 2024",
+        "Vote was 523 in favor, 46 against, 49 abstentions",
+        "World's first comprehensive AI legal framework",
+        "Four risk categories: unacceptable, high, limited, minimal",
+        "Social scoring and real-time public biometric surveillance banned",
+        "Fines up to 35 million euros or 7% of global annual revenue",
+        "Full effect in August 2026"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "electric-vehicle-sales-2023",
+      "title": "Global Electric Vehicle Sales Surpass 14 Million in 2023",
+      "topic": "tech",
+      "source_text": "Global electric vehicle sales reached 14.2 million units in 2023, a 35% increase from 10.5 million in 2022, according to the International Energy Agency's (IEA) Global EV Outlook 2024 report published in April 2024. China accounted for 60% of global EV sales with 8.5 million units sold. Europe was the second-largest market with 3.2 million EVs sold, followed by the United States with 1.4 million. Battery electric vehicles (BEVs) made up 70% of EV sales, with plug-in hybrids (PHEVs) comprising the rest. Tesla remained the top-selling EV brand globally with 1.81 million deliveries, followed by BYD with 1.57 million pure electric vehicles (and 3.02 million including PHEVs). The global EV fleet surpassed 40 million vehicles by the end of 2023.",
+      "key_facts": [
+        "14.2 million EVs sold globally in 2023, up 35% from 10.5 million in 2022",
+        "Data from IEA Global EV Outlook 2024 published April 2024",
+        "China had 60% share with 8.5 million units",
+        "Europe sold 3.2 million, US sold 1.4 million",
+        "BEVs were 70% of sales, PHEVs the rest",
+        "Tesla delivered 1.81 million, BYD 1.57 million BEVs",
+        "Global EV fleet surpassed 40 million by end of 2023"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "super-bowl-lviii",
+      "title": "Kansas City Chiefs Win Super Bowl LVIII in Overtime",
+      "topic": "sports",
+      "source_text": "The Kansas City Chiefs won Super Bowl LVIII on February 11, 2024, defeating the San Francisco 49ers 25-22 in overtime at Allegiant Stadium in Las Vegas, Nevada. It was the first Super Bowl held in Las Vegas. Chiefs quarterback Patrick Mahomes was named Super Bowl MVP for the third time, completing 34 of 46 passes for 333 yards and two touchdowns. Mecole Hardman caught the game-winning touchdown in overtime. The 49ers led 10-3 at halftime. This was the Chiefs' fourth Super Bowl title overall and their second consecutive, making them the first team to win back-to-back Super Bowls since the New England Patriots in 2003-2004. Usher performed the halftime show. The game drew 123.4 million viewers, the most-watched telecast in U.S. history.",
+      "key_facts": [
+        "Chiefs won 25-22 in overtime on February 11, 2024",
+        "Played at Allegiant Stadium in Las Vegas, first Super Bowl there",
+        "Patrick Mahomes named MVP for the third time",
+        "Mahomes completed 34 of 46 passes for 333 yards and 2 touchdowns",
+        "Mecole Hardman caught the game-winning OT touchdown",
+        "Chiefs' second consecutive title, first back-to-back since Patriots 2003-2004",
+        "123.4 million viewers, most-watched U.S. telecast ever"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "deepseek-r1-release",
+      "title": "DeepSeek R1 Challenges Leading AI Models at Fraction of Cost",
+      "topic": "tech",
+      "source_text": "Chinese AI company DeepSeek released its R1 reasoning model on January 20, 2025, claiming performance comparable to OpenAI's o1 on several benchmarks. The model achieved 97.3% accuracy on MATH-500 and 79.8% on AIME 2024 problems. DeepSeek reported that the total training cost for R1 was approximately $5.6 million, using 2,048 Nvidia H800 GPUs over about two months. The model is fully open-source under the MIT license. DeepSeek's mobile app briefly became the most downloaded free app on Apple's U.S. App Store, surpassing ChatGPT. The release triggered a sell-off in U.S. tech stocks, with Nvidia losing approximately $600 billion in market value on January 27, 2025. DeepSeek was founded in 2023 by Liang Wenfeng, who also runs the quantitative trading firm High-Flyer.",
+      "key_facts": [
+        "DeepSeek R1 released on January 20, 2025",
+        "97.3% accuracy on MATH-500, 79.8% on AIME 2024",
+        "Training cost approximately $5.6 million using 2,048 H800 GPUs",
+        "Open-source under MIT license",
+        "App surpassed ChatGPT on Apple's US App Store",
+        "Nvidia lost approximately $600 billion in market value on January 27, 2025",
+        "Founded by Liang Wenfeng, also runs High-Flyer"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "japan-population-decline",
+      "title": "Japan Records Lowest Number of Births in History",
+      "topic": "politics",
+      "source_text": "Japan recorded 758,631 births in 2023, the lowest since records began in 1899, according to data released by the Ministry of Health, Labour and Welfare on February 27, 2024. This represented a 5.1% decline from 799,728 births in 2022. The total fertility rate dropped to 1.20, far below the 2.1 replacement level. Deaths outnumbered births by 831,872, the largest natural population decline on record. Japan's total population fell to 124.35 million, down from a peak of 128.08 million in 2008. Prime Minister Fumio Kishida declared the situation a 'national crisis' and announced a child-related spending package of 3.6 trillion yen ($24 billion) per year. The median age in Japan is 48.4 years, the highest of any country.",
+      "key_facts": [
+        "758,631 births in 2023, lowest since records began in 1899",
+        "5.1% decline from 799,728 births in 2022",
+        "Total fertility rate dropped to 1.20",
+        "Deaths outnumbered births by 831,872",
+        "Population fell to 124.35 million from peak of 128.08 million in 2008",
+        "PM Kishida announced 3.6 trillion yen ($24 billion) child spending package",
+        "Japan's median age is 48.4 years"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "reddit-ipo-2024",
+      "title": "Reddit Goes Public in Long-Awaited IPO",
+      "topic": "finance",
+      "source_text": "Reddit began trading on the New York Stock Exchange on March 21, 2024, under the ticker symbol RDDT. The IPO was priced at $34 per share, valuing the company at approximately $6.4 billion. On its first day of trading, shares surged 48% to close at $50.44. Reddit raised $748 million in the offering. CEO Steve Huffman, who co-founded Reddit in 2005 with Alexis Ohanian, holds shares worth approximately $500 million based on the IPO price. The company reported revenue of $804 million for 2023, up 21% from $666 million in 2022, but posted a net loss of $90.8 million. Reddit has 73 million daily active users and over 100,000 active communities. Morgan Stanley and Goldman Sachs were the lead underwriters.",
+      "key_facts": [
+        "Reddit IPO on NYSE March 21, 2024, ticker RDDT",
+        "IPO priced at $34/share, valuing company at $6.4 billion",
+        "Shares surged 48% to $50.44 on first day",
+        "Raised $748 million in the offering",
+        "Co-founded in 2005 by Steve Huffman and Alexis Ohanian",
+        "2023 revenue $804 million (up 21%), net loss $90.8 million",
+        "73 million daily active users"
+      ]
+    }
+  },
+  {
+    "model": "evals.evalarticle",
+    "fields": {
+      "slug": "mpox-emergency-2024",
+      "title": "WHO Declares Mpox a Public Health Emergency of International Concern",
+      "topic": "health",
+      "source_text": "The World Health Organization declared mpox (formerly monkeypox) a Public Health Emergency of International Concern (PHEIC) on August 14, 2024, the second such declaration for the disease. WHO Director-General Dr. Tedros Adhanom Ghebreyesus made the declaration after consulting an emergency committee. The decision was driven by a surge of cases in the Democratic Republic of the Congo, which reported over 27,000 suspected cases and more than 1,100 deaths in 2024. A new clade Ib variant was identified as more transmissible and potentially more virulent. The DRC had only 265,000 vaccine doses available for a population of over 99 million. Jynneos (also known as Imvanex), manufactured by Bavarian Nordic, is the primary vaccine. Africa CDC Director Dr. Jean Kaseya urged wealthy nations to share vaccine supplies.",
+      "key_facts": [
+        "WHO declared mpox PHEIC on August 14, 2024",
+        "Second PHEIC declaration for mpox",
+        "Dr. Tedros Adhanom Ghebreyesus made the declaration",
+        "DRC reported over 27,000 suspected cases and 1,100+ deaths in 2024",
+        "New clade Ib variant identified as more transmissible",
+        "DRC had only 265,000 vaccine doses for 99+ million population",
+        "Jynneos/Imvanex vaccine by Bavarian Nordic"
+      ]
+    }
+  }
+]
